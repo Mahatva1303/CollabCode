@@ -1,0 +1,57 @@
+
+/* Feed page uses shared layout and empty-state styles from App.css. */
+
+.feed-page {
+  min-height: 100%;
+}
+
+/* Feed page */
+
+.home-page-heading {
+  margin-bottom: 28px;
+}
+
+.home-page-heading p {
+  margin: 8px 0 0;
+  color: #8b949e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.home-empty-state {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 20px;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  background: #111820;
+  text-align: center;
+}
+
+.home-empty-symbol {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 15px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  color: #58a6ff;
+  font-size: 26px;
+}
+
+.home-empty-state h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.home-empty-state p {
+  max-width: 430px;
+  margin: 9px 0 20px;
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.7;
+}

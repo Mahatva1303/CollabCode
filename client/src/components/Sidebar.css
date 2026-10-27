@@ -1,0 +1,275 @@
+
+/* ==========================
+   SIDEBAR
+   ========================== */
+
+.home-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px 14px 14px;
+  border-right: 1px solid #30363d;
+  background: #0d1117;
+  overflow-y: auto;
+}
+
+.sidebar-account {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.sidebar-account:hover {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+.sidebar-account-details {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-account-details strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sidebar-account-details small {
+  color: #8b949e;
+  font-size: 11px;
+}
+
+.account-switch-icon {
+  color: #8b949e;
+  font-size: 15px;
+}
+
+/* Navigation */
+
+.home-navigation {
+  display: grid;
+  gap: 4px;
+  margin-top: 22px;
+}
+
+.home-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #c9d1d9;
+  text-align: left;
+  font-size: 13px;
+}
+
+.home-nav-item:hover {
+  background: #161b22;
+}
+
+.home-nav-item.active {
+  border-color: #30363d;
+  background: #161b22;
+  color: #f0f6fc;
+  font-weight: 600;
+}
+
+.nav-symbol {
+  width: 18px;
+  color: #8b949e;
+  font-size: 18px;
+  text-align: center;
+}
+
+.home-nav-item.active .nav-symbol {
+  color: #58a6ff;
+}
+
+.sidebar-divider {
+  height: 1px;
+  flex-shrink: 0;
+  margin: 20px 4px 14px;
+  background: #30363d;
+}
+
+/* Top workspaces */
+
+.top-workspaces-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 7px 9px;
+}
+
+.top-workspaces-heading strong {
+  color: #8b949e;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sidebar-icon-button {
+  width: 25px;
+  height: 25px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #8b949e;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.sidebar-icon-button:hover {
+  border-color: #30363d;
+  background: #161b22;
+  color: #e6edf3;
+}
+
+.top-workspaces-list {
+  display: grid;
+  gap: 2px;
+}
+
+.top-workspace-item {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #c9d1d9;
+  text-align: left;
+  font-size: 12px;
+}
+
+.top-workspace-item:hover {
+  border-color: #30363d;
+  background: #161b22;
+  color: #fff;
+}
+
+.top-workspace-item > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-mini-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #30363d;
+  border-radius: 5px;
+  background: #161b22;
+  color: #79c0ff;
+  font-size: 12px;
+}
+
+.sidebar-empty {
+  padding: 0 8px;
+  color: #6e7681;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.sidebar-create-workspace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 13px;
+  padding: 9px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #161b22;
+  color: #c9d1d9;
+  font-size: 12px;
+}
+
+.sidebar-create-workspace:hover {
+  border-color: #6e7681;
+  background: #21262d;
+}
+
+.sidebar-create-workspace > span {
+  color: #3fb950;
+  font-size: 16px;
+}
+
+.sidebar-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 13px 8px 4px;
+  border: 0;
+  border-top: 1px solid #30363d;
+  background: transparent;
+  color: #8b949e;
+  text-align: left;
+  font-size: 11px;
+}
+
+.sidebar-profile-link:hover {
+  color: #e6edf3;
+}
+
+/* Responsive sidebar */
+
+@media (max-width: 760px) {
+  .home-sidebar {
+    padding: 14px 9px 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-sidebar {
+    position: relative;
+    height: auto;
+    min-height: 0;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 1px solid #30363d;
+  }
+
+  .sidebar-account {
+    padding: 6px 4px;
+  }
+
+  .home-navigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 10px;
+  }
+
+  .sidebar-divider,
+  .top-workspaces-heading,
+  .top-workspaces-list,
+  .sidebar-create-workspace,
+  .sidebar-profile-link {
+    display: none;
+  }
+}

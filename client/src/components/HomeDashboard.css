@@ -1,0 +1,346 @@
+
+/* ==========================
+   HOME DASHBOARD
+   ========================== */
+
+.home-main {
+  min-width: 0;
+  width: 100%;
+}
+
+.home-topbar {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 clamp(20px, 3vw, 48px);
+  border-bottom: 1px solid #21262d;
+  background: rgba(13, 17, 23, 0.96);
+}
+
+.home-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-brand img {
+  width: 31px;
+  height: 31px;
+  object-fit: contain;
+}
+
+.home-brand strong {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.home-create-button {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid #2ea043;
+  border-radius: 6px;
+  background: #238636;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.home-create-button:hover,
+.home-primary-button:hover {
+  background: #2ea043;
+}
+
+.home-content {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 38px clamp(20px, 3vw, 48px) 60px;
+}
+
+.home-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 8px 0 34px;
+}
+
+.home-eyebrow {
+  margin: 0 0 10px !important;
+  color: #8b949e !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.home-welcome h1 {
+  margin: 0;
+  color: #f0f6fc;
+  font-size: clamp(25px, 3vw, 34px);
+  line-height: 1.25;
+  letter-spacing: -1px;
+}
+
+.home-welcome > div > p:last-child {
+  margin: 9px 0 0;
+  color: #8b949e;
+  font-size: 14px;
+}
+
+/* Dashboard primary button */
+
+.home-primary-button {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: 1px solid #2ea043;
+  border-radius: 6px;
+  background: #238636;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Home section headings */
+
+.home-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 6px 0 18px;
+}
+
+.home-section-heading h2,
+.home-lower-section h2 {
+  margin: 0;
+  color: #e6edf3;
+  font-size: 17px;
+  letter-spacing: -0.3px;
+}
+
+.home-section-heading p,
+.home-lower-section p {
+  margin: 7px 0 0;
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.workspace-count {
+  padding: 5px 9px;
+  border: 1px solid #30363d;
+  border-radius: 20px;
+  color: #8b949e;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Dashboard workspace grid */
+
+.home-content .workspace-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-content .workspace-card {
+  padding: 19px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.home-content .workspace-card:focus-visible {
+  outline: 2px solid #58a6ff;
+  outline-offset: 3px;
+}
+
+.home-content .workspace-card h3 {
+  margin-top: 18px;
+  overflow-wrap: anywhere;
+}
+
+.home-content .workspace-card > p {
+  min-height: 42px;
+}
+
+/* Create workspace card */
+
+.workspace-add-card {
+  min-height: 215px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 20px;
+  border: 1px dashed #3d444d;
+  border-radius: 9px;
+  background: rgba(22, 27, 34, 0.45);
+  color: #c9d1d9;
+}
+
+.workspace-add-card:hover {
+  border-color: #58a6ff;
+  background: #111820;
+}
+
+.workspace-add-symbol {
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #30363d;
+  border-radius: 50%;
+  color: #58a6ff;
+  font-size: 23px;
+}
+
+.workspace-add-card strong {
+  font-size: 12px;
+}
+
+.workspace-add-card > span:last-child {
+  color: #8b949e;
+  font-size: 11px;
+}
+
+/* Lower dashboard section */
+
+.home-lower-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid #30363d;
+  border-radius: 9px;
+  background: #111820;
+}
+
+.home-lower-section .profile-secondary-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive home layout */
+
+@media (max-width: 1100px) {
+  .app.home-shell {
+    grid-template-columns: 235px minmax(0, 1fr);
+  }
+
+  .home-content .workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .app.home-shell {
+    grid-template-columns: 205px minmax(0, 1fr);
+  }
+
+  .home-content {
+    padding: 28px 18px 45px;
+  }
+
+  .home-topbar {
+    padding: 0 18px;
+  }
+
+  .home-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .home-lower-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .app.home-shell {
+    display: block;
+  }
+
+  .home-topbar {
+    min-height: 56px;
+    padding: 0 14px;
+  }
+
+  .home-brand img {
+    width: 27px;
+    height: 27px;
+  }
+
+  .home-brand strong {
+    font-size: 15px;
+  }
+
+  .home-create-button {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .home-content {
+    padding: 25px 14px 35px;
+  }
+
+  .home-content .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-add-card {
+    min-height: 150px;
+  }
+
+  .home-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.workspace-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-delete-button {
+  padding: 6px 9px;
+  border: 1px solid #5b3038;
+  border-radius: 7px;
+  background: transparent;
+  color: #ff8585;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.workspace-delete-button:hover {
+  background: rgba(248, 81, 73, 0.14);
+  border-color: #f85149;
+}
+
+
+.workspace-edit-button {
+  padding: 6px 9px;
+  border: 1px solid #30363d;
+  border-radius: 7px;
+  background: transparent;
+  color: #c9d1d9;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.workspace-edit-button:hover {
+  background: #21262d;
+  border-color: #8b949e;
+}
