@@ -1,0 +1,174 @@
+
+.team-chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: #181818;
+  color: #cccccc;
+  border-bottom: 1px solid #303030;
+}
+
+.team-chat-header {
+  min-height: 58px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #303030;
+}
+
+.team-chat-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-chat-icon {
+  color: #8b9bb0;
+  font-size: 20px;
+}
+
+.team-chat-title h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.team-chat-title p {
+  margin: 5px 0 0;
+  color: #858585;
+  font-size: 11px;
+}
+
+.team-online-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #3fb950;
+}
+
+.team-chat-more {
+  border: 0;
+  background: transparent;
+  color: #a0a0a0;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.team-chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 12px;
+}
+
+.team-chat-date {
+  margin-bottom: 18px;
+  color: #777777;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.team-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.team-message-avatar {
+  display: grid;
+  flex: 0 0 29px;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.team-message-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.team-message-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 6px;
+}
+
+.team-message-meta strong {
+  color: #e2e2e2;
+  font-size: 11px;
+}
+
+.team-message-meta time {
+  color: #777777;
+  font-size: 10px;
+}
+
+.team-message-body p {
+  margin: 0;
+  color: #c4c4c4;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.own-message .team-message-body p {
+  color: #d7e6f8;
+}
+
+.team-chat-composer {
+  display: flex;
+  gap: 8px;
+  margin: 0 10px 12px;
+  padding: 7px;
+  border: 1px solid #3a3a3a;
+  border-radius: 7px;
+  background: #202020;
+}
+
+.team-chat-composer:focus-within {
+  border-color: #007fd4;
+}
+
+.team-chat-composer input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #eeeeee;
+  font: inherit;
+  font-size: 12px;
+}
+
+.team-chat-composer input::placeholder {
+  color: #777777;
+}
+
+.team-chat-composer button {
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 5px;
+  background: #007fd4;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.team-chat-composer button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

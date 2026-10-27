@@ -1,5 +1,3 @@
-
-/* WorkspaceEditor uses the existing editor styles in App.css for now. */
 /* ==========================
    COLLABCODE CODE EDITOR
    ========================== */
@@ -30,7 +28,7 @@
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid var(--editor-border);
-  background: #111820;
+  background: #181a1f;
 }
 
 .editor-brand,
@@ -105,39 +103,53 @@
   background: #303d4f;
 }
 
+/* Main workspace layout */
+
 .editor-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) auto;
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 210px minmax(300px, 1.2fr) minmax(280px, 0.8fr);
-  position: relative;
+  min-width: 0;
+  overflow: hidden;
 }
 
-/* The editor file sidebar is separate from the dashboard Sidebar component. */
+.editor-layout.preview-closed {
+  grid-template-columns: 220px minmax(0, 1fr) auto;
+}
+
+.editor-layout.preview-open {
+  grid-template-columns: 220px minmax(0, 1fr) minmax(220px, 30%) auto;
+}
+
+/* File explorer */
 
 .file-sidebar {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--editor-border);
-  background: #101720;
+  background: #181a1f;
+  overflow: hidden;
 }
 
 .sidebar-heading {
-  padding: 19px 16px 15px;
+  padding: 14px 18px 12px;
   color: #98a6b8;
   font-size: 11px;
-  letter-spacing: 1.2px;
-  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 .project-folder {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 10px 12px;
   color: #d8e1ec;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
 }
 
@@ -148,22 +160,26 @@
 }
 
 .file-list {
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-top: 5px;
+  padding-bottom: 12px;
 }
 
 .file-item {
   display: flex;
   width: 100%;
+  min-height: 31px;
   align-items: center;
   gap: 10px;
-  padding: 9px 16px 9px 31px;
+  padding: 6px 12px 6px 24px;
   border: 0;
   border-left: 2px solid transparent;
   color: #b8c4d3;
   background: transparent;
   text-align: left;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -209,41 +225,53 @@
   border-top: 1px solid var(--editor-border);
   color: var(--editor-muted);
   font-size: 11px;
+  flex-shrink: 0;
 }
+
+/* Code editor */
 
 .code-panel {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #0d1117;
+  background: #1e1e1e;
+  overflow: hidden;
 }
 
 .file-tab-bar {
   min-height: 42px;
   display: flex;
   align-items: stretch;
+  flex-shrink: 0;
   border-bottom: 1px solid var(--editor-border);
-  background: #111820;
+  background: #181818;
 }
 
 .open-file-tab {
   min-width: 125px;
+  min-height: 43px;
   display: flex;
   align-items: center;
   gap: 9px;
   padding: 0 14px;
-  border-top: 2px solid #58a6ff;
+  border-top: 2px solid #3794ff;
   border-right: 1px solid var(--editor-border);
   color: #e6edf3;
-  background: #0d1117;
-  font-size: 12px;
+  background: #1e1e1e;
+  font-size: 13px;
 }
 
 .tab-close {
   margin-left: auto;
   color: #8794a5;
   font-size: 16px;
+}
+
+.tab-unsaved-indicator {
+  margin-left: auto;
+  color: #8b949e;
+  font-size: 10px;
 }
 
 .editor-breadcrumb {
@@ -253,7 +281,9 @@
   gap: 9px;
   padding: 0 17px;
   color: #a4b1c2;
-  font-size: 11px;
+  background: #1e1e1e;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .editor-breadcrumb span {
@@ -262,6 +292,7 @@
 
 .monaco-container {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
@@ -276,6 +307,7 @@
   background: #173c67;
   color: #f0f6fc;
   font-size: 10px;
+  flex-shrink: 0;
 }
 
 .editor-statusbar span:first-child {
@@ -285,6 +317,13 @@
   text-overflow: ellipsis;
 }
 
+.file-item-name,
+.open-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Preview panel */
 
 .preview-panel {
@@ -292,9 +331,10 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--editor-border);
+  border-left: 1px solid #30363d;
   background: #f8fafc;
   color: #1f2937;
+  overflow: hidden;
 }
 
 .preview-header {
@@ -305,6 +345,7 @@
   padding: 0 12px;
   border-bottom: 1px solid #dbe2ea;
   background: #ffffff;
+  flex-shrink: 0;
 }
 
 .preview-header > div {
@@ -346,6 +387,7 @@
   background: white;
   color: #657286;
   font-size: 11px;
+  flex-shrink: 0;
 }
 
 .preview-frame {
@@ -408,8 +450,10 @@
   cursor: pointer;
 }
 
+/* Bottom workspace bar */
+
 .editor-footer {
-  min-height: 27px;
+  min-height: 32px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -417,259 +461,9 @@
   gap: 10px;
   padding: 0 13px;
   border-top: 1px solid var(--editor-border);
-  background: #111820;
+  background: #181a1f;
   color: #93a1b3;
   font-size: 10px;
-}
-
-.editor-tabs-mobile {
-  display: none;
-}
-
-/* File management buttons */
-
-.file-actions {
-  display: flex;
-  gap: 6px;
-  padding: 6px 10px;
-  border-bottom: 1px solid #263241;
-}
-
-.file-actions button {
-  padding: 5px 8px;
-  border: 1px solid #344256;
-  border-radius: 4px;
-  background: #202b39;
-  color: #d7e0eb;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.file-actions button:hover {
-  background: #304156;
-}
-
-.file-actions button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.no-file-message {
-  padding: 24px;
-  color: #8492a6;
-  font-size: 13px;
-}
-
-
-@media (max-width: 1000px) {
-  .editor-layout {
-    grid-template-columns: 175px minmax(280px, 1fr);
-  }
-
-  .preview-panel {
-    position: absolute;
-    inset: 0 0 0 175px;
-    z-index: 4;
-  }
-
-  .preview-panel:not(.mobile-visible) {
-    display: none;
-  }
-
-  .preview-panel.mobile-visible {
-    display: flex;
-  }
-
-  .code-panel.mobile-visible,
-  .file-sidebar.mobile-visible {
-    display: flex;
-  }
-
-  .editor-tabs-mobile {
-    display: flex;
-    flex-shrink: 0;
-    gap: 5px;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--editor-border);
-    background: #111820;
-  }
-
-  .editor-tabs-mobile button {
-    padding: 7px 12px;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
-    color: #aab6c5;
-    font-size: 12px;
-  }
-
-  .editor-tabs-mobile button.selected {
-    border-color: #344256;
-    background: #202b39;
-    color: white;
-  }
-}
-
-
-@media (max-width: 650px) {
-  .editor-topbar {
-    height: auto;
-    min-height: 55px;
-    padding: 10px;
-    flex-wrap: wrap;
-  }
-
-  .editor-brand {
-    gap: 7px;
-  }
-
-  .editor-brand > span:first-of-type {
-    font-size: 13px;
-  }
-
-  .editor-brand strong {
-    max-width: 100px;
-    font-size: 11px;
-  }
-
-  .editor-brand img {
-    width: 25px;
-    height: 25px;
-  }
-
-  .editor-top-actions {
-    gap: 6px;
-  }
-
-  .editor-status-text,
-  .editor-status-dot {
-    display: none;
-  }
-
-  .editor-run-btn,
-  .editor-back-btn {
-    padding: 0 9px;
-    font-size: 11px;
-  }
-
-  .editor-layout {
-    display: block;
-    position: relative;
-  }
-
-  .file-sidebar,
-  .code-panel {
-    display: none;
-    position: absolute;
-    inset: 0;
-  }
-
-  .file-sidebar.mobile-visible,
-  .code-panel.mobile-visible {
-    display: flex;
-  }
-
-  .preview-panel {
-    position: absolute;
-    inset: 0;
-  }
-
-  .preview-panel:not(.mobile-visible) {
-    display: none;
-  }
-
-  .preview-panel.mobile-visible {
-    display: flex;
-  }
-
-  .editor-statusbar {
-    gap: 8px;
-    font-size: 9px;
-  }
-
-  .editor-footer {
-    font-size: 9px;
-  }
-}
-
-
-
-/* VS Code-style workspace refinements */
-
-.editor-topbar {
-  height: 58px;
-  background: #181a1f;
-}
-
-.editor-layout.preview-closed {
-  grid-template-columns: 220px minmax(0, 1fr);
-}
-
-.editor-layout.preview-open {
-  grid-template-columns: 220px minmax(0, 1fr) minmax(300px, 36%);
-}
-
-.file-sidebar {
-  background: #181a1f;
-}
-
-.sidebar-heading {
-  padding: 14px 18px 12px;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-}
-
-.project-folder {
-  padding: 10px 12px;
-  font-size: 13px;
-}
-
-.file-item {
-  min-height: 31px;
-  padding: 6px 12px 6px 24px;
-  font-size: 13px;
-}
-
-.file-item-name,
-.open-file-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.code-panel {
-  background: #1e1e1e;
-}
-
-.file-tab-bar {
-  background: #181818;
-}
-
-.open-file-tab {
-  min-height: 43px;
-  border-top-color: #3794ff;
-  background: #1e1e1e;
-  font-size: 13px;
-}
-
-.tab-unsaved-indicator {
-  margin-left: auto;
-  color: #8b949e;
-  font-size: 10px;
-}
-
-.editor-breadcrumb {
-  background: #1e1e1e;
-  font-size: 12px;
-}
-
-.preview-panel {
-  border-left: 1px solid #30363d;
-}
-
-.editor-footer {
-  min-height: 32px;
-  background: #181a1f;
 }
 
 .go-live-button {
@@ -699,43 +493,60 @@
   font-size: 14px;
 }
 
-@media (max-width: 1000px) {
-  .editor-layout.preview-open {
-    grid-template-columns: 175px minmax(0, 1fr);
-  }
-
-  .editor-layout.preview-closed {
-    grid-template-columns: 175px minmax(0, 1fr);
-  }
+.editor-tabs-mobile {
+  display: none;
 }
 
-@media (max-width: 650px) {
-  .editor-layout.preview-open,
-  .editor-layout.preview-closed {
-    display: block;
-  }
+/* File management buttons */
+
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #263241;
+  flex-shrink: 0;
+}
+
+.file-actions button {
+  padding: 5px 8px;
+  border: 1px solid #344256;
+  border-radius: 4px;
+  background: #202b39;
+  color: #d7e0eb;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.file-actions button:hover {
+  background: #304156;
+}
+
+.file-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.no-file-message {
+  padding: 24px;
+  color: #8492a6;
+  font-size: 13px;
 }
 
 /* Expandable VS Code-style Explorer tree */
-
-.file-list {
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding-bottom: 12px;
-}
 
 .tree-folder {
   width: 100%;
 }
 
 .tree-row {
+  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
   min-height: 29px;
   color: #cccccc;
   font-size: 13px;
-  position: relative;
 }
 
 .folder-row {
@@ -838,18 +649,177 @@
   color: #ffffff;
 }
 
-.file-actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.file-actions button {
-  font-size: 12px;
-}
+/* Touch devices */
 
 @media (hover: none) {
   .tree-actions {
     opacity: 1;
+  }
+}
+
+/* Tablet layout */
+
+@media (max-width: 1000px) {
+  .editor-layout,
+  .editor-layout.preview-open,
+  .editor-layout.preview-closed {
+    grid-template-columns: 175px minmax(0, 1fr);
+  }
+
+  /* The collaboration sidebar is hidden on smaller screens. */
+  .resizable-right-panel {
+    display: none;
+  }
+
+  .preview-panel {
+    position: absolute;
+    inset: 0 0 0 175px;
+    z-index: 4;
+  }
+
+  .preview-panel:not(.mobile-visible) {
+    display: none;
+  }
+
+  .preview-panel.mobile-visible {
+    display: flex;
+  }
+
+  .code-panel.mobile-visible,
+  .file-sidebar.mobile-visible {
+    display: flex;
+  }
+
+  .editor-tabs-mobile {
+    display: flex;
+    flex-shrink: 0;
+    gap: 5px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--editor-border);
+    background: #111820;
+  }
+
+  .editor-tabs-mobile button {
+    padding: 7px 12px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: #aab6c5;
+    font-size: 12px;
+  }
+
+  .editor-tabs-mobile button.selected {
+    border-color: #344256;
+    background: #202b39;
+    color: white;
+  }
+}
+
+/* Mobile layout */
+
+@media (max-width: 650px) {
+  .editor-topbar {
+    height: auto;
+    min-height: 55px;
+    padding: 10px;
+    flex-wrap: wrap;
+  }
+
+  .editor-brand {
+    gap: 7px;
+  }
+
+  .editor-brand > span:first-of-type {
+    font-size: 13px;
+  }
+
+  .editor-brand strong {
+    max-width: 100px;
+    font-size: 11px;
+  }
+
+  .editor-brand img {
+    width: 25px;
+    height: 25px;
+  }
+
+  .editor-top-actions {
+    gap: 6px;
+  }
+
+  .editor-status-text,
+  .editor-status-dot {
+    display: none;
+  }
+
+  .editor-run-btn,
+  .editor-back-btn {
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .editor-layout,
+  .editor-layout.preview-open,
+  .editor-layout.preview-closed {
+    display: block;
+    position: relative;
+  }
+
+  .file-sidebar,
+  .code-panel {
+    display: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  .file-sidebar.mobile-visible,
+  .code-panel.mobile-visible {
+    display: flex;
+  }
+
+  .preview-panel {
+    position: absolute;
+    inset: 0;
+  }
+
+  .preview-panel:not(.mobile-visible) {
+    display: none;
+  }
+
+  .preview-panel.mobile-visible {
+    display: flex;
+  }
+
+  .resizable-right-panel {
+    display: none;
+  }
+
+  .editor-statusbar {
+    gap: 8px;
+    font-size: 9px;
+  }
+
+  .editor-footer {
+    font-size: 9px;
+  }
+}
+
+
+.editor-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-left: auto;
+  min-width: 0;
+}
+
+@media (max-width: 650px) {
+  .editor-footer-actions {
+    gap: 8px;
+  }
+
+  .wingsman-toggle-name {
+    display: none;
   }
 }

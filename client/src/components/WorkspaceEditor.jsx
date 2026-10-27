@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import './WorkspaceEditor.css';
+import ResizableRightPanel from './ResizableRightPanel';
+import WingsmanToggle from './wingsman-ai/WingsmanToggle';
 
 const FOLDER_MARKER = '/.__collabcode_folder__';
 
@@ -35,7 +37,6 @@ function buildFileTree(files) {
     });
   });
 
-  // Keep explicitly created empty folders in the tree.
   Object.keys(files)
     .filter(isFolderMarker)
     .forEach((markerPath) => {
@@ -254,6 +255,8 @@ export default function WorkspaceEditor({
   setShowPreview,
   previewCode,
 }) {
+  const [wingsmanEnabled, setWingsmanEnabled] = useState(false);
+
   const fileTree = buildFileTree(files);
 
   return (
@@ -502,28 +505,37 @@ export default function WorkspaceEditor({
             )}
           </section>
         )}
+
+        <ResizableRightPanel />
       </div>
 
       <footer className="editor-footer">
         <span>CollabCode</span>
         <span>{activeWorkspace.tech.join(' · ')}</span>
 
-        <button
-          className={`go-live-button ${showPreview ? 'is-live' : ''}`}
-          onClick={() => {
-            if (showPreview) {
-              setShowPreview(false);
-              setMobilePanel('editor');
-            } else {
-              setShowPreview(true);
-              setMobilePanel('preview');
-            }
-          }}
-          title={showPreview ? 'Close live preview' : 'Open live preview'}
-        >
-          <span className="go-live-icon">◉</span>
-          {showPreview ? 'Close Preview' : 'Go Live'}
-        </button>
+        <div className="editor-footer-actions">
+          <WingsmanToggle
+            enabled={wingsmanEnabled}
+            onChange={setWingsmanEnabled}
+          />
+
+          <button
+            className={`go-live-button ${showPreview ? 'is-live' : ''}`}
+            onClick={() => {
+              if (showPreview) {
+                setShowPreview(false);
+                setMobilePanel('editor');
+              } else {
+                setShowPreview(true);
+                setMobilePanel('preview');
+              }
+            }}
+            title={showPreview ? 'Close live preview' : 'Open live preview'}
+          >
+            <span className="go-live-icon">◉</span>
+            {showPreview ? 'Close Preview' : 'Go Live'}
+          </button>
+        </div>
       </footer>
     </div>
   );
