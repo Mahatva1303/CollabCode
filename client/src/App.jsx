@@ -8,6 +8,9 @@ import Sidebar from './components/Sidebar';
 import HomeDashboard from './components/HomeDashboard';
 import FeedPage from './components/FeedPage';
 import WorkspaceEditor from './components/WorkspaceEditor';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './firebase';
+import AuthPage from './components/AuthPage';
 
 const STORAGE_KEYS = {
   workspaces: 'collabcode-workspaces',
@@ -266,6 +269,8 @@ function App() {
   const [workspaces, setWorkspaces] = useState(() =>
     readStorage(STORAGE_KEYS.workspaces, initialWorkspaces)
   );
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const [savedProjects, setSavedProjects] = useState(() =>
     readStorage(STORAGE_KEYS.projects, {})
@@ -298,6 +303,41 @@ function App() {
   const [profileMessage, setProfileMessage] = useState('');
 
   const avatarInputRef = useRef(null);
+
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+    setAuthLoading(false);
+
+    if (currentUser) {
+      const accountName =
+        currentUser.displayName ||
+        currentUser.email?.split('@')[0] ||
+        'User';
+
+      setProfile((current) => ({
+        ...current,
+        displayName:
+          current.email === (currentUser.email || '')
+            ? current.displayName || accountName
+            : accountName,
+        email: currentUser.email || '',
+        createdAt: currentUser.metadata.creationTime || '',
+      }));
+
+      setEditDisplayName(
+        currentUser.displayName ||
+          currentUser.email?.split('@')[0] ||
+          'User'
+      );
+    } else {
+      setActiveWorkspace(null);
+      setShowCreateModal(false);
+    }
+  });
+
+  return unsubscribe;
+}, []);
 
   useEffect(() => {
     try {
@@ -366,24 +406,35 @@ function App() {
     setCurrentPage('profile');
   }
 
-  function saveProfile(event) {
-    event.preventDefault();
 
-    const name = editDisplayName.trim();
+function saveProfile(event) {
+  event.preventDefault();
 
-    if (!name) {
-      setProfileMessage('Display name cannot be empty.');
-      return;
-    }
+  const name = editDisplayName.trim();
 
-    setProfile((current) => ({
-      ...current,
-      displayName: name,
-      bio: editBio.trim(),
-    }));
-
-    setProfileMessage('Profile saved successfully.');
+  if (!name) {
+    setProfileMessage('Display name cannot be empty.');
+    return;
   }
+
+  const details = event.profileDetails || {};
+
+  setProfile((current) => ({
+    ...current,
+    displayName: name,
+    username: name,
+    bio: details.bio ?? editBio.trim(),
+    location: details.location ?? current.location ?? '',
+    localTimeZone:
+      details.localTimeZone ?? current.localTimeZone ?? 'Asia/Kolkata',
+    pointerColor:
+      details.pointerColor ?? current.pointerColor ?? '#388bfd',
+  }));
+
+  setEditBio(details.bio ?? editBio.trim());
+  setProfileMessage('Profile saved successfully.');
+}
+
 
   function selectAvatar(event) {
     const selectedFile = event.target.files?.[0];
@@ -981,6 +1032,29 @@ function App() {
     }
   }
 
+
+
+
+  if (authLoading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'grid',
+          placeItems: 'center',
+          background: '#0d1117',
+          color: '#ffffff',
+        }}
+      >
+        Loading CollabCode...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
   if (activeWorkspace) {
     return (
       <WorkspaceEditor
@@ -1010,6 +1084,7 @@ function App() {
     );
   }
 
+
   return (
     <div className="app home-shell">
       <Sidebar
@@ -1030,6 +1105,7 @@ function App() {
             <strong>CollabCode</strong>
           </div>
 
+         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button
             className="home-create-button"
             onClick={() => {
@@ -1041,6 +1117,24 @@ function App() {
           >
             + New workspace
           </button>
+
+          <button
+            type="button"
+            className="home-create-button"
+            onClick={async () => {
+              try {
+                await signOut(auth);
+                setActiveWorkspace(null);
+                setCurrentPage('home');
+              } catch (error) {
+                console.error('Sign-out failed:', error);
+                alert('Could not sign out. Please try again.');
+              }
+            }}
+          >
+            Sign out
+          </button>
+        </div>
         </header>
 
         {currentPage === 'profile' ? (
