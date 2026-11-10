@@ -74,11 +74,13 @@ export default function HomeDashboard({
             }}
           >
             <div className="workspace-card-top">
-              <div className="workspace-icon">{workspace.icon}</div>
+              <div className="workspace-icon">
+                {workspace.icon || '◈'}
+              </div>
 
               <div className="workspace-card-actions">
                 <span className="workspace-status">
-                  {workspace.status}
+                  {workspace.status || 'Personal'}
                 </span>
 
                 <button
@@ -106,8 +108,8 @@ export default function HomeDashboard({
             <h3>{workspace.name}</h3>
             <p>{workspace.description}</p>
 
-            <div className="tech-list">
-              {workspace.tech.map((tech) => (
+           <div className="tech-list">
+              {(Array.isArray(workspace.tech) ? workspace.tech : []).map((tech) => (
                 <span className="tech-tag" key={tech}>
                   {tech}
                 </span>

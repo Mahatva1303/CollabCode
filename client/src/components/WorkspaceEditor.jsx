@@ -1,9 +1,14 @@
-
-import { useState } from 'react';
+import useCollaboration from '../collaboration/useCollaboration';
+import ConnectionStatus from './collaboration/ConnectionStatus';
+import { useState, useEffect, useRef } from 'react';
+import { MonacoBinding } from 'y-monaco';
 import Editor from '@monaco-editor/react';
 import './WorkspaceEditor.css';
 import ResizableRightPanel from './ResizableRightPanel';
 import WingsmanToggle from './wingsman-ai/WingsmanToggle';
+import { inviteWorkspaceMemberApi } from '../api/workspaceApi';
+import CollaboratorCursors from './collaboration/CollaboratorCursors';
+import ActiveUsers from './collaboration/ActiveUsers';
 
 const FOLDER_MARKER = '/.__collabcode_folder__';
 
@@ -232,6 +237,8 @@ function FileTree({
 }
 
 export default function WorkspaceEditor({
+  user,
+  profile,
   activeWorkspace,
   logo,
   mobilePanel,
@@ -256,8 +263,203 @@ export default function WorkspaceEditor({
   previewCode,
 }) {
   const [wingsmanEnabled, setWingsmanEnabled] = useState(false);
+  const [monacoEditor, setMonacoEditor] = useState(null);
+
+const updateFileRef = useRef(updateFile);
+
+useEffect(() => {
+  updateFileRef.current = updateFile;
+}, [updateFile]);
+
+  const [firebaseToken, setFirebaseToken] = useState(null);
+  const workspaceId = activeWorkspace?._id || activeWorkspace?.id;
+
+const isValidWorkspaceId = /^[a-f\d]{24}$/i.test(
+  String(workspaceId || '')
+);
+
+const {
+  document,
+  provider,
+  status,
+  isSynced,
+} = useCollaboration({
+  workspaceId,
+  filePath: activeFile,
+  enabled: Boolean(
+    firebaseToken &&
+    isValidWorkspaceId &&
+    activeFile
+  ),
+  token: firebaseToken,
+});
+
+
+useEffect(() => {
+  if (!provider) return;
+
+  provider.awareness.setLocalStateField('user', {
+    name:
+      profile?.displayName ||
+      user?.displayName ||
+      user?.email?.split('@')[0] ||
+      'User',
+
+    color: profile?.pointerColor || '#388bfd',
+  });
+}, [provider, profile?.displayName, profile?.pointerColor, user]);
+
+
+useEffect(() => {
+  if (!provider) return;
+
+  const checkAwareness = () => {
+    console.log(
+      'Connected collaborators:',
+      provider.awareness.getStates()
+    );
+  };
+
+  provider.awareness.on('change', checkAwareness);
+
+  checkAwareness();
+
+  return () => {
+    provider.awareness.off('change', checkAwareness);
+  };
+}, [provider]);
+
+useEffect(() => {
+  let isMounted = true;
+
+  async function getUserToken() {
+    try {
+      if (!user) {
+        setFirebaseToken(null);
+        return;
+      }
+
+      const token = await user.getIdToken();
+
+      if (isMounted) {
+        setFirebaseToken(token);
+        console.log('Firebase ID token obtained successfully.');
+      }
+    } catch (error) {
+      console.error('Could not obtain Firebase ID token:', error);
+    }
+  }
+
+  getUserToken();
+
+  return () => {
+    isMounted = false;
+  };
+}, [user]);
+
+ // Connect Monaco Editor with the shared Yjs document
+useEffect(() => {
+    if (!document || !provider || !isSynced || !monacoEditor) {
+        return;
+    }
+
+    const model = monacoEditor.getModel();
+
+    if (!model) return;
+
+    const sharedText = document.getText('monaco');
+
+    // Initialize shared content for the first collaborator
+    if (sharedText.length === 0 && model.getValue()) {
+        sharedText.insert(0, model.getValue());
+    }
+    // Load existing content for other collaborators
+    else if (sharedText.length > 0) {
+        model.setValue(sharedText.toString());
+    }
+
+    const binding = new MonacoBinding(
+        sharedText,
+        model,
+        new Set([monacoEditor]),
+        provider.awareness
+    );
+
+    return () => {
+        binding.destroy();
+    };
+}, [document, provider, isSynced, monacoEditor]);
+
+// Open editor tabs
+const [openTabs, setOpenTabs] = useState(
+    activeFile ? [activeFile] : []
+);
+
+// Reset tabs when switching workspaces
+useEffect(() => {
+  setOpenTabs(activeFile ? [activeFile] : []);
+}, [activeWorkspace.name]);
+
+// Open the selected file in a tab
+useEffect(() => {
+  if (!activeFile || files[activeFile] === undefined) return;
+
+  setOpenTabs((current) =>
+    current.includes(activeFile)
+      ? current
+      : [...current, activeFile]
+  );
+}, [activeFile, activeWorkspace.name]);
+
+// Remove tabs for files that no longer exist
+useEffect(() => {
+  setOpenTabs((current) =>
+    current.filter(
+      (path) => files[path] !== undefined && !isFolderMarker(path)
+    )
+  );
+}, [files]);
+
+function closeTab(path) {
+  const index = openTabs.indexOf(path);
+  const remainingTabs = openTabs.filter((tab) => tab !== path);
+
+  setOpenTabs(remainingTabs);
+
+  if (activeFile === path) {
+    const nextFile =
+      remainingTabs[Math.min(index, remainingTabs.length - 1)] ||
+      Object.keys(files).find(
+        (file) => !isFolderMarker(file)
+      ) ||
+      '';
+
+    setActiveFile(nextFile);
+  }
+}
 
   const fileTree = buildFileTree(files);
+  async function inviteMember() {
+  const email = window.prompt(
+    'Enter the email address of the account to invite:'
+  );
+
+  if (!email?.trim()) return;
+
+  try {
+    await inviteWorkspaceMemberApi(workspaceId, {
+      email: email.trim(),
+      role: 'Editor',
+    });
+
+    window.alert(
+      'Member invited successfully! They can now access this workspace.'
+    );
+  } catch (error) {
+    console.error('Member invitation failed:', error);
+    window.alert(error.message || 'Could not invite member.');
+  }
+}
 
   return (
     <div className="editor-app">
@@ -272,6 +474,12 @@ export default function WorkspaceEditor({
         <div className="editor-top-actions">
           <span className="editor-status-dot" />
           <span className="editor-status-text">Auto Save</span>
+          <button
+              className="editor-back-btn"
+              onClick={inviteMember}
+            >
+              + Invite
+            </button>
 
           <button className="editor-run-btn" onClick={runPreview}>
             ▶ Run
@@ -364,6 +572,8 @@ export default function WorkspaceEditor({
             )}
           </div>
 
+          <ActiveUsers provider={provider} />
+
           <div className="sidebar-bottom">
             <span>◉</span> Saved in this browser
           </div>
@@ -374,7 +584,7 @@ export default function WorkspaceEditor({
             mobilePanel === 'editor' ? 'mobile-visible' : ''
           }`}
         >
-          <div className="file-tab-bar">
+          {/* <div className="file-tab-bar">
             {activeFile && (
               <div className="open-file-tab">
                 <span className={`file-type-icon ${getLanguage(activeFile)}`}>
@@ -390,7 +600,50 @@ export default function WorkspaceEditor({
                 </span>
               </div>
             )}
-          </div>
+          </div> */}
+
+
+          <div className="file-tab-bar">
+  {openTabs.map((path) => (
+    <div
+      key={path}
+      className={`open-file-tab ${
+        activeFile === path ? 'active' : ''
+      }`}
+      onClick={() => {
+        setActiveFile(path);
+        setMobilePanel('editor');
+      }}
+    >
+      <span className={`file-type-icon ${getLanguage(path)}`}>
+        {getFileIcon(path)}
+      </span>
+
+      <span className="open-file-name">
+        {path.split('/').pop()}
+      </span>
+
+      <span
+        className="tab-unsaved-indicator"
+        title="Saved locally"
+      >
+        ●
+      </span>
+
+      <button
+        type="button"
+        className="tab-close"
+        title="Close tab"
+        onClick={(event) => {
+          event.stopPropagation();
+          closeTab(path);
+        }}
+      >
+        ×
+      </button>
+    </div>
+  ))}
+</div>
 
           <div className="editor-breadcrumb">
             <span>{activeWorkspace.name}</span>
@@ -409,6 +662,9 @@ export default function WorkspaceEditor({
               <Editor
                 height="100%"
                 path={`${activeWorkspace.name}/${activeFile}`}
+                onMount={(editor) => {
+                    setMonacoEditor(editor);
+                  }}
                 language={getLanguage(activeFile)}
                 theme="vs-dark"
                 value={files[activeFile] ?? ''}
@@ -431,15 +687,26 @@ export default function WorkspaceEditor({
                   smoothScrolling: true,
                 }}
               />
+              
             ) : (
               <p className="no-file-message">
                 Create or select a file to start coding.
               </p>
             )}
+
+            <CollaboratorCursors
+   editor={monacoEditor}
+  provider={provider}
+/>
+
           </div>
 
           <div className="editor-statusbar">
             <span>● {outputMessage}</span>
+            <ConnectionStatus
+  status={status}
+  isSynced={isSynced}
+/>
             <span>{activeFile ? getLanguage(activeFile) : 'Plain Text'}</span>
             <span>UTF-8</span>
             <span>Spaces: 2</span>
@@ -506,12 +773,22 @@ export default function WorkspaceEditor({
           </section>
         )}
 
-        <ResizableRightPanel />
+      <ResizableRightPanel
+  workspaceId={workspaceId}
+  token={firebaseToken}
+  user={user}
+  profile={profile}
+/>
       </div>
 
       <footer className="editor-footer">
         <span>CollabCode</span>
-        <span>{activeWorkspace.tech.join(' · ')}</span>
+        <span>
+  {(Array.isArray(activeWorkspace.tech)
+    ? activeWorkspace.tech
+    : []
+  ).join(' · ')}
+</span>
 
         <div className="editor-footer-actions">
           <WingsmanToggle

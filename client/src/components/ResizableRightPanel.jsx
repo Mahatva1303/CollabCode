@@ -9,7 +9,11 @@ const MAX_WIDTH = 650;
 const DEFAULT_WIDTH = 360;
 
 export default function ResizableRightPanel({
-  initialWidth = DEFAULT_WIDTH,
+    initialWidth = DEFAULT_WIDTH,
+  workspaceId,
+  token,
+  user,
+  profile,
 }) {
   const [width, setWidth] = useState(
     Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, initialWidth))
@@ -73,7 +77,12 @@ export default function ResizableRightPanel({
       />
 
       <div className="right-panel-content">
-        <TeamChat />
+       <TeamChat
+  workspaceId={workspaceId}
+  token={token}
+  user={user}
+  profile={profile}
+/>
         <WingsmanPanel />
       </div>
     </aside>

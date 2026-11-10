@@ -11,6 +11,11 @@ import WorkspaceEditor from './components/WorkspaceEditor';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './firebase';
 import AuthPage from './components/AuthPage';
+import {
+    fetchWorkspaces,
+    createWorkspaceApi,
+    deleteWorkspaceApi,
+} from './api/workspaceApi';
 
 const STORAGE_KEYS = {
   workspaces: 'collabcode-workspaces',
@@ -267,10 +272,16 @@ function getFolderMarkerPath(folderPath) {
 
 function App() {
   const [workspaces, setWorkspaces] = useState(() =>
-    readStorage(STORAGE_KEYS.workspaces, initialWorkspaces)
-  );
+  readStorage(STORAGE_KEYS.workspaces, initialWorkspaces).map(
+    (workspace) => ({
+      ...workspace,
+      id: workspace.id || crypto.randomUUID(),
+    })
+  )
+);
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [workspacesLoading, setWorkspacesLoading] = useState(true);
 
   const [savedProjects, setSavedProjects] = useState(() =>
     readStorage(STORAGE_KEYS.projects, {})
@@ -339,6 +350,99 @@ function App() {
   return unsubscribe;
 }, []);
 
+
+
+useEffect(() => {
+    if (!user) {
+        setWorkspacesLoading(false);
+        return;
+    }
+
+    let cancelled = false;
+
+    async function loadWorkspaces() {
+        setWorkspacesLoading(true);
+
+        try {
+            let remoteWorkspaces = await fetchWorkspaces();
+
+            // Migrate existing local workspaces if this account
+            // does not have any workspaces on the server yet.
+            if (remoteWorkspaces.length === 0) {
+                const migratedWorkspaces = [];
+
+                for (const workspace of workspaces) {
+                    const created = await createWorkspaceApi({
+                        name: workspace.name,
+                        description: workspace.description || '',
+                        tech: workspace.tech || [],
+                        status: workspace.status || 'Personal',
+                        icon: workspace.icon || '◈',
+                        template: workspace.template || 'HTML',
+                    });
+
+                    migratedWorkspaces.push(created);
+                }
+
+                remoteWorkspaces = migratedWorkspaces;
+            }
+
+            if (!cancelled) {
+               const defaultTech = {
+    HTML: ['HTML', 'CSS', 'JavaScript'],
+    React: ['React', 'JavaScript'],
+    'Full Stack': ['React', 'Node.js', 'Express'],
+};
+
+setWorkspaces(
+    remoteWorkspaces.map((workspace) => {
+       const workspaceName = (workspace.name || '').toLowerCase();
+
+const template =
+    workspace.template ||
+    (workspaceName.includes('full stack')
+        ? 'Full Stack'
+        : workspaceName.includes('react')
+            ? 'React'
+            : 'HTML');
+
+        return {
+            ...workspace,
+            id: workspace._id,
+            template,
+            icon:
+                workspace.icon ||
+                (template === 'React' ? '⚛' :
+                 template === 'HTML' ? '◈' : '⌘'),
+            status: workspace.status || 'Personal',
+            tech:
+                Array.isArray(workspace.tech) && workspace.tech.length > 0
+                    ? workspace.tech
+                    : defaultTech[template] || defaultTech.HTML,
+            description:
+                workspace.description || 'Your development workspace.',
+        };
+    })
+);
+            }
+        } catch (error) {
+            console.error('Could not load workspaces:', error);
+            alert(error.message || 'Could not load workspaces.');
+        } finally {
+            if (!cancelled) {
+                setWorkspacesLoading(false);
+            }
+        }
+    }
+
+    loadWorkspaces();
+
+    return () => {
+        cancelled = true;
+    };
+}, [user]);
+
+
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -373,8 +477,11 @@ function App() {
     if (!activeWorkspace) return;
 
     const selectedTemplate =
-      activeWorkspace.template ||
-      (activeWorkspace.tech.includes('HTML') ? 'HTML' : 'React');
+  activeWorkspace.template ||
+  (Array.isArray(activeWorkspace.tech) &&
+  activeWorkspace.tech.includes('HTML')
+    ? 'HTML'
+    : 'React');
 
     const existingFiles = savedProjects[activeWorkspace.name];
 
@@ -511,7 +618,8 @@ function saveProfile(event) {
     setShowCreateModal(true);
   }
 
-  function createWorkspace(event) {
+
+async function createWorkspace(event) {
     event.preventDefault();
 
     const name = workspaceName.trim();
@@ -519,45 +627,62 @@ function saveProfile(event) {
     if (!name) return;
 
     if (
-      workspaces.some(
-        (workspace) => workspace.name.toLowerCase() === name.toLowerCase()
-      )
+        workspaces.some(
+            (workspace) =>
+                workspace.name.toLowerCase() === name.toLowerCase()
+        )
     ) {
-      alert('A workspace with this name already exists.');
-      return;
+        alert('A workspace with this name already exists.');
+        return;
     }
 
     const templateTech = {
-      HTML: ['HTML', 'CSS', 'JavaScript'],
-      React: ['React', 'JavaScript'],
-      'Full Stack': ['React', 'Node.js', 'Express'],
+        HTML: ['HTML', 'CSS', 'JavaScript'],
+        React: ['React', 'JavaScript'],
+        'Full Stack': ['React', 'Node.js', 'Express'],
     };
 
-    const newWorkspace = {
-      name,
-      description: 'Your new development workspace.',
-      tech: templateTech[template],
-      status: 'Personal',
-      icon: template === 'React' ? '⚛' : template === 'HTML' ? '◈' : '⌘',
-      template,
+    const workspacePayload = {
+        name,
+        description: 'Your new development workspace.',
+        tech: templateTech[template],
+        status: 'Personal',
+        icon: template === 'React' ? '⚛' : template === 'HTML' ? '◈' : '⌘',
+        template,
     };
 
-    const newFiles = {
-      ...(starterFiles[template] || starterFiles.HTML),
-    };
+    try {
+        // Save workspace in MongoDB
+        const createdWorkspace = await createWorkspaceApi(workspacePayload);
 
-    setWorkspaces((current) => [...current, newWorkspace]);
+        // Use MongoDB ID instead of random UUID
+        const newWorkspace = {
+            ...createdWorkspace,
+            id: createdWorkspace._id,
+        };
 
-    setSavedProjects((current) => ({
-      ...current,
-      [name]: newFiles,
-    }));
+        const newFiles = {
+            ...(starterFiles[template] || starterFiles.HTML),
+        };
 
-    setWorkspaceName('');
-    setShowCreateModal(false);
-    setEditingWorkspace(null);
-    setActiveWorkspace(newWorkspace);
-  }
+        setWorkspaces((current) => [...current, newWorkspace]);
+
+        setSavedProjects((current) => ({
+            ...current,
+            [name]: newFiles,
+        }));
+
+        setWorkspaceName('');
+        setShowCreateModal(false);
+        setEditingWorkspace(null);
+        setActiveWorkspace(newWorkspace);
+
+    } catch (error) {
+        console.error('Workspace creation failed:', error);
+        alert(error.message || 'Could not create workspace.');
+    }
+}
+
 
   function saveWorkspaceChanges(event) {
     event.preventDefault();
@@ -1014,23 +1139,47 @@ function saveProfile(event) {
     setActiveWorkspace(workspace);
   }
 
-  function deleteWorkspace(workspaceToDelete) {
-    setWorkspaces((current) =>
-      current.filter(
-        (workspace) => workspace.name !== workspaceToDelete.name
-      )
-    );
+  
+async function deleteWorkspace(workspaceToDelete) {
+    try {
+        const workspaceId = workspaceToDelete._id || workspaceToDelete.id;
 
-    setSavedProjects((current) => {
-      const updatedProjects = { ...current };
-      delete updatedProjects[workspaceToDelete.name];
-      return updatedProjects;
-    });
+        if (!workspaceId) {
+            alert('Workspace ID not found. Cannot delete workspace.');
+            return;
+        }
 
-    if (activeWorkspace?.name === workspaceToDelete.name) {
-      setActiveWorkspace(null);
+        // Delete workspace from MongoDB first
+        await deleteWorkspaceApi(workspaceId);
+
+        // Update frontend only after successful deletion
+        setWorkspaces((current) =>
+            current.filter(
+                (workspace) =>
+                    (workspace._id || workspace.id) !== workspaceId
+            )
+        );
+
+        setSavedProjects((current) => {
+            const updatedProjects = { ...current };
+            delete updatedProjects[workspaceToDelete.name];
+            return updatedProjects;
+        });
+
+        if (
+            (activeWorkspace?._id || activeWorkspace?.id) === workspaceId
+        ) {
+            setActiveWorkspace(null);
+        }
+
+        alert('Workspace deleted successfully.');
+
+    } catch (error) {
+        console.error('Workspace deletion error:', error);
+        alert(error.message || 'Failed to delete workspace.');
     }
-  }
+}
+
 
 
 
@@ -1058,6 +1207,8 @@ function saveProfile(event) {
   if (activeWorkspace) {
     return (
       <WorkspaceEditor
+        user={user}
+        profile={profile}
         activeWorkspace={activeWorkspace}
         logo={logo}
         mobilePanel={mobilePanel}

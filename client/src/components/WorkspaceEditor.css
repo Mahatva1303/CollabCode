@@ -823,3 +823,41 @@
     display: none;
   }
 }
+
+
+/* =================================
+   COLLABORATOR REMOTE CURSORS
+================================= */
+
+.yRemoteSelection {
+  background-color: rgba(56, 139, 253, 0.25);
+}
+
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2px solid #388bfd;
+  border-top: 2px solid #388bfd;
+  border-bottom: 2px solid #388bfd;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+
+/* Force collaborator cursor visibility inside Monaco */
+
+.monaco-editor .yRemoteSelectionHead {
+  position: absolute !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border-left: 3px solid #388bfd !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  width: 2px !important;
+  z-index: 100 !important;
+}
+
+.monaco-editor .yRemoteSelection {
+  background-color: rgba(56, 139, 253, 0.25) !important;
+}
