@@ -5,7 +5,7 @@ const { verifyFirebaseToken } = require('./auth');
 const Workspace = require('../models/Workspace');
 
 const collaborationServer = new Server({
-    port: 1234,
+    port: process.env.PORT || 1234,
 
     // Verify Firebase identity and workspace membership
     async onAuthenticate({ token, documentName }) {
@@ -68,7 +68,9 @@ const collaborationServer = new Server({
 async function startCollaborationServer() {
     await collaborationServer.listen();
 
-    console.log('Collaboration server running on port 1234');
+    console.log(
+        `Collaboration server running on port ${process.env.PORT || 1234}`
+    );
 }
 
 module.exports = {

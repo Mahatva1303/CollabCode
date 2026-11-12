@@ -5,7 +5,7 @@ const express = require('express');
 const cors = require('cors');
 
 const connectDB = require('./config/db');
-const { startCollaborationServer } = require('./collaboration/collaborationServer');
+
 const workspaceRoutes = require('./routes/workspaceRoutes');
 const codingActivityRoutes = require('./routes/codingActivityRoutes');
 
@@ -14,7 +14,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: [
+        'http://localhost:5173',
+        process.env.CLIENT_URL
+    ].filter(Boolean)
 }));
 
 app.use(express.json());
@@ -31,24 +34,21 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Start both servers
+// Start Express API server only
 async function startServers() {
     try {
-        // Connect to MongoDB first
+        // Connect to MongoDB
         await connectDB();
 
         // Start Express backend
         app.listen(PORT, () => {
             console.log(
-                `CollabCode backend running on http://localhost:${PORT}`
+                `CollabCode backend running on port ${PORT}`
             );
         });
 
-        // Start collaboration server
-        await startCollaborationServer();
-
     } catch (error) {
-        console.error('Failed to start CollabCode servers:', error);
+        console.error('Failed to start CollabCode backend:', error);
         process.exit(1);
     }
 }

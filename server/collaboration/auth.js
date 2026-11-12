@@ -10,9 +10,11 @@ const {
 const { getAuth } = require('firebase-admin/auth');
 
 // Load Firebase service account credentials
-const serviceAccount = require(
-    path.join(__dirname, '..', 'serviceAccountKey.json')
-);
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    : require(
+        path.join(__dirname, '..', 'serviceAccountKey.json')
+    );
 
 // Initialize Firebase Admin only once
 const firebaseAdminApp =
