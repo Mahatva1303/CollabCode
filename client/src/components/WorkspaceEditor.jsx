@@ -240,6 +240,7 @@ export default function WorkspaceEditor({
   user,
   profile,
   activeWorkspace,
+  onLocalCodeEdit,
   logo,
   mobilePanel,
   setMobilePanel,
@@ -270,6 +271,12 @@ const updateFileRef = useRef(updateFile);
 useEffect(() => {
   updateFileRef.current = updateFile;
 }, [updateFile]);
+
+const onLocalCodeEditRef = useRef(onLocalCodeEdit);
+
+useEffect(() => {
+  onLocalCodeEditRef.current = onLocalCodeEdit;
+}, [onLocalCodeEdit]);
 
   const [firebaseToken, setFirebaseToken] = useState(null);
   const workspaceId = activeWorkspace?._id || activeWorkspace?.id;
@@ -357,7 +364,8 @@ useEffect(() => {
   };
 }, [user]);
 
- // Connect Monaco Editor with the shared Yjs document
+
+// Connect Monaco Editor with the shared Yjs document
 useEffect(() => {
     if (!document || !provider || !isSynced || !monacoEditor) {
         return;
@@ -385,10 +393,30 @@ useEffect(() => {
         provider.awareness
     );
 
+    // Detect only local code edits, not remote collaborator edits
+    const handleLocalTransaction = (transaction) => {
+        if (
+            transaction.local &&
+            transaction.changed.has(sharedText)
+        ) {
+            onLocalCodeEditRef.current?.(activeFile);
+        }
+    };
+
+    document.on('afterTransaction', handleLocalTransaction);
+
     return () => {
+        document.off('afterTransaction', handleLocalTransaction);
         binding.destroy();
     };
-}, [document, provider, isSynced, monacoEditor]);
+}, [
+    document,
+    provider,
+    isSynced,
+    monacoEditor,
+    activeFile,
+]);
+
 
 // Open editor tabs
 const [openTabs, setOpenTabs] = useState(

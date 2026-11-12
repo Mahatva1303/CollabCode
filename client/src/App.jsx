@@ -16,6 +16,7 @@ import {
     createWorkspaceApi,
     deleteWorkspaceApi,
 } from './api/workspaceApi';
+import { recordCodingActivity } from './api/codingActivityApi';
 
 const STORAGE_KEYS = {
   workspaces: 'collabcode-workspaces',
@@ -314,6 +315,79 @@ function App() {
   const [profileMessage, setProfileMessage] = useState('');
 
   const avatarInputRef = useRef(null);
+
+  const activityTimersRef = useRef({});
+const activitySessionIdsRef = useRef({});
+
+// Get a session ID for the current user, workspace and local date
+function getCodingSessionId(workspaceId, date) {
+    const key = `${user.uid}-${workspaceId}-${date}`;
+
+    if (!activitySessionIdsRef.current[key]) {
+        const storageKey = `collabcode-session-${key}`;
+
+        let sessionId = sessionStorage.getItem(storageKey);
+
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            sessionStorage.setItem(storageKey, sessionId);
+        }
+
+        activitySessionIdsRef.current[key] = sessionId;
+    }
+
+    return activitySessionIdsRef.current[key];
+}
+
+// Get today's date using the timezone in the user's profile
+function getActivityDate() {
+    const timeZone = profile.localTimeZone || 'Asia/Kolkata';
+
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(new Date());
+
+    const values = Object.fromEntries(
+        parts.map(part => [part.type, part.value])
+    );
+
+    return `${values.year}-${values.month}-${values.day}`;
+}
+
+// Send activity to the backend
+async function recordActivity(activityType, filePath = '') {
+    if (!user || !activeWorkspace) return;
+
+    const workspaceId = activeWorkspace._id || activeWorkspace.id;
+
+    if (!workspaceId) return;
+
+    const date = getActivityDate();
+
+    try {
+        await recordCodingActivity({
+            workspaceId,
+            filePath,
+            activityType,
+            sessionId: getCodingSessionId(workspaceId, date),
+            date,
+        });
+    } catch (error) {
+        console.error('Could not record coding activity:', error);
+    }
+}
+
+// Wait until editing pauses before recording a code-edit activity
+function scheduleCodeEditActivity(filePath) {
+    clearTimeout(activityTimersRef.current.codeEdit);
+
+    activityTimersRef.current.codeEdit = setTimeout(() => {
+        recordActivity('code_edit', filePath);
+    }, 2000);
+}
 
   useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -794,6 +868,7 @@ async function createWorkspace(event) {
     newFiles[name] = '';
 
     persistProjectFiles(newFiles);
+    recordActivity('file_create', name);
     setActiveFile(name);
     setMobilePanel('editor');
     setOutputMessage(`Created ${name}`);
@@ -990,6 +1065,7 @@ async function createWorkspace(event) {
       });
 
     persistProjectFiles(newFiles);
+    recordActivity('file_delete', filePath);
 
     if (activeFile === filePath) {
       setActiveFile(
@@ -1044,6 +1120,7 @@ async function createWorkspace(event) {
       });
 
     persistProjectFiles(newFiles);
+    recordActivity('file_delete', folderPath);
 
     if (activeFile === folderPath || activeFile.startsWith(`${folderPath}/`)) {
       setActiveFile(
@@ -1210,6 +1287,7 @@ async function deleteWorkspace(workspaceToDelete) {
         user={user}
         profile={profile}
         activeWorkspace={activeWorkspace}
+        onLocalCodeEdit={scheduleCodeEditActivity}
         logo={logo}
         mobilePanel={mobilePanel}
         setMobilePanel={setMobilePanel}
