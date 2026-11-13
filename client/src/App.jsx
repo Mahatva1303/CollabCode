@@ -1387,6 +1387,7 @@ async function deleteWorkspace(workspaceToDelete) {
           <HomeDashboard
             profile={profile}
             workspaces={workspaces}
+            savedProjects={savedProjects}
             openWorkspace={openWorkspace}
             setShowCreateModal={setShowCreateModal}
             openProfile={openProfile}

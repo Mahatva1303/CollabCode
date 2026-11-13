@@ -2,9 +2,78 @@
 import ActivityChart from './ActivityChart';
 import './HomeDashboard.css';
 
+
+const LANGUAGE_INFO = {
+  JavaScript: { color: '#f1e05a' },
+  TypeScript: { color: '#3178c6' },
+  HTML: { color: '#e34c26' },
+  CSS: { color: '#563d7c' },
+  Python: { color: '#3572A5' },
+  Java: { color: '#b07219' },
+  JSON: { color: '#292929' },
+  Markdown: { color: '#083fa1' },
+  PHP: { color: '#4F5D95' },
+  SQL: { color: '#e38c00' },
+  Shell: { color: '#89e051' },
+};
+
+const EXTENSION_LANGUAGE = {
+  js: 'JavaScript',
+  jsx: 'JavaScript',
+  mjs: 'JavaScript',
+  cjs: 'JavaScript',
+  ts: 'TypeScript',
+  tsx: 'TypeScript',
+  html: 'HTML',
+  htm: 'HTML',
+  css: 'CSS',
+  scss: 'CSS',
+  py: 'Python',
+  java: 'Java',
+  json: 'JSON',
+  md: 'Markdown',
+  php: 'PHP',
+  sql: 'SQL',
+  sh: 'Shell',
+};
+
+function getWorkspaceLanguages(files = {}) {
+  const totals = {};
+
+  Object.entries(files).forEach(([filePath, content]) => {
+    if (filePath.endsWith('/')) return;
+    if (typeof content !== 'string' || !content.trim()) return;
+
+    const extension = filePath.split('.').pop()?.toLowerCase();
+    const language = EXTENSION_LANGUAGE[extension];
+
+    if (!language) return;
+
+    const size = new TextEncoder().encode(content).length;
+
+    totals[language] = (totals[language] || 0) + size;
+  });
+
+  const totalSize = Object.values(totals).reduce(
+    (sum, size) => sum + size,
+    0
+  );
+
+  if (!totalSize) return [];
+
+  return Object.entries(totals)
+    .map(([name, size]) => ({
+      name,
+      percentage: (size / totalSize) * 100,
+      color: LANGUAGE_INFO[name].color,
+    }))
+    .sort((a, b) => b.percentage - a.percentage);
+}
+
 export default function HomeDashboard({
   profile,
   workspaces,
+  savedProjects,
   openWorkspace,
   setShowCreateModal,
   openProfile,
@@ -106,9 +175,48 @@ export default function HomeDashboard({
             </div>
 
             <h3>{workspace.name}</h3>
-            <p>{workspace.description}</p>
+<p>{workspace.description}</p>
 
-           <div className="tech-list">
+{(() => {
+  const languages = getWorkspaceLanguages(
+    savedProjects?.[workspace.name]
+  );
+
+  if (!languages.length) return null;
+
+  return (
+    <div className="workspace-languages">
+      <div className="language-bar">
+        {languages.map((language) => (
+          <span
+            key={language.name}
+            className="language-bar-segment"
+            style={{
+              width: `${language.percentage}%`,
+              backgroundColor: language.color,
+            }}
+            title={`${language.name}: ${language.percentage.toFixed(1)}%`}
+          />
+        ))}
+      </div>
+
+      <div className="language-legend">
+        {languages.map((language) => (
+          <span key={language.name} className="language-item">
+            <span
+              className="language-dot"
+              style={{ backgroundColor: language.color }}
+            />
+            <strong>{language.name}</strong>
+            <span>{language.percentage.toFixed(1)}%</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+})()}
+
+<div className="tech-list">
               {(Array.isArray(workspace.tech) ? workspace.tech : []).map((tech) => (
                 <span className="tech-tag" key={tech}>
                   {tech}
