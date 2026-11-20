@@ -9,14 +9,36 @@ export default function Sidebar({
   openWorkspace,
   setShowCreateModal,
   renderAvatar,
+  mobileSidebarOpen,
+setMobileSidebarOpen,
 }) {
+
+  const closeMobileSidebar = () => {
+  setMobileSidebarOpen(false);
+};
   return (
-    <aside className="home-sidebar">
+    <aside
+  className={`home-sidebar ${mobileSidebarOpen ? 'mobile-open' : ''}`}
+
+  
+>
+
       <button
-        className="sidebar-account"
-        onClick={openProfile}
-        title="Open your profile"
-      >
+      type="button"
+      className="sidebar-mobile-close"
+      onClick={() => setMobileSidebarOpen(false)}
+      aria-label="Close navigation menu"
+    >
+      ×
+    </button>
+    <button
+  className="sidebar-account"
+  onClick={() => {
+    openProfile();
+    closeMobileSidebar();
+  }}
+  title="Open your profile"
+>
         {renderAvatar()}
 
         <span className="sidebar-account-details">
@@ -32,7 +54,10 @@ export default function Sidebar({
           className={`home-nav-item ${
             currentPage === 'home' ? 'active' : ''
           }`}
-          onClick={() => setCurrentPage('home')}
+          onClick={() => {
+  setCurrentPage('home');
+  closeMobileSidebar();
+}}
         >
           <span className="nav-symbol">⌂</span>
           <span>Home</span>
@@ -42,7 +67,10 @@ export default function Sidebar({
           className={`home-nav-item ${
             currentPage === 'feed' ? 'active' : ''
           }`}
-          onClick={() => setCurrentPage('feed')}
+         onClick={() => {
+  setCurrentPage('feed');
+  closeMobileSidebar();
+}}
         >
           <span className="nav-symbol">◎</span>
           <span>Feed</span>
@@ -56,7 +84,10 @@ export default function Sidebar({
         <button
           className="sidebar-icon-button"
           title="Create workspace"
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+  setShowCreateModal(true);
+  closeMobileSidebar();
+}}
         >
           +
         </button>
@@ -69,7 +100,10 @@ export default function Sidebar({
               key={`${workspace.name}-${index}`}
               className="top-workspace-item"
               title={workspace.name}
-              onClick={() => openWorkspace(workspace)}
+              onClick={() => {
+  openWorkspace(workspace);
+  closeMobileSidebar();
+}}
             >
               <span className="workspace-mini-icon">
                 {workspace.icon}
@@ -86,12 +120,18 @@ export default function Sidebar({
 
       <button
         className="sidebar-create-workspace"
-        onClick={() => setShowCreateModal(true)}
+        onClick={() => {
+  setShowCreateModal(true);
+  closeMobileSidebar();
+}}
       >
         <span>+</span> New workspace
       </button>
 
-      <button className="sidebar-profile-link" onClick={openProfile}>
+      <button className="sidebar-profile-link" onClick={() => {
+  openProfile();
+  closeMobileSidebar();
+}}>
         {renderAvatar('small')}
         <span>Profile settings</span>
       </button>

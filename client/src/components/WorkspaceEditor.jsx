@@ -948,6 +948,16 @@ async function handleRemoveMember(memberId, memberEmail) {
         >
           Preview
         </button>
+
+        <button
+  type="button"
+  className={mobilePanel === 'assistant' ? 'selected' : ''}
+  onClick={() => setMobilePanel('assistant')}
+>
+  AI / Chat
+</button>    
+
+
       </div>
 
       <div
@@ -1222,6 +1232,7 @@ async function handleRemoveMember(memberId, memberEmail) {
   files={files}
   activeFile={activeFile}
   applyWingsmanEdit={applyWingsmanEdit}
+  mobilePanel={mobilePanel}
 />
       </div>
 

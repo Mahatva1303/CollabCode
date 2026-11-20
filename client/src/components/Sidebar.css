@@ -273,3 +273,78 @@
     display: none;
   }
 }
+
+
+/* =====================================
+   MOBILE SLIDE-OUT SIDEBAR
+===================================== */
+
+/* Hide close button on desktop */
+.sidebar-mobile-close {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .home-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(290px, 85vw);
+    height: 100dvh;
+    min-height: 0;
+    padding: 20px 14px;
+    border-right: 1px solid #30363d;
+    border-bottom: none;
+    background: #0d1117;
+    z-index: 1001;
+
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    visibility: hidden;
+    overflow-y: auto;
+  }
+
+  .home-sidebar.mobile-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .sidebar-mobile-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+    width: 34px;
+    height: 34px;
+    margin-bottom: 10px;
+    border: 1px solid #30363d;
+    border-radius: 7px;
+    background: #161b22;
+    color: #e6edf3;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  /* Restore sidebar sections hidden by older mobile CSS */
+  .home-navigation {
+    grid-template-columns: 1fr;
+    margin-top: 22px;
+  }
+
+  .sidebar-divider {
+    display: block;
+  }
+
+  .top-workspaces-heading {
+    display: flex;
+  }
+
+  .top-workspaces-list {
+    display: grid;
+  }
+
+  .sidebar-create-workspace,
+  .sidebar-profile-link {
+    display: flex;
+  }
+}

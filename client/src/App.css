@@ -513,3 +513,140 @@ button {
   border-color: #6e7681;
   background: #21262d;
 }
+
+
+/* =====================================
+   RESPONSIVE DASHBOARD LAYOUT
+===================================== */
+
+/* Tablet screens */
+@media (min-width: 651px) and (max-width: 1100px) {
+  .app.home-shell {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .home-main {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-card {
+    min-width: 0;
+  }
+}
+
+/* =====================================
+   MOBILE HAMBURGER MENU
+===================================== */
+
+/* Hidden on desktop and tablet */
+.mobile-menu-button {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .mobile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 38px;
+    height: 38px;
+
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #161b22;
+    color: #e6edf3;
+
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .mobile-menu-button:hover {
+    background: #21262d;
+    border-color: #58a6ff;
+  }
+}
+
+/* Mobile sidebar background overlay */
+
+.mobile-sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .mobile-sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+  }
+}
+
+/* =====================================
+   RESPONSIVE WORKSPACE CARDS
+===================================== */
+
+@media (max-width: 1100px) {
+  .workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .workspace-card {
+    padding: 18px;
+  }
+
+  .workspace-card h3 {
+    overflow-wrap: anywhere;
+  }
+
+  .workspace-card-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 650px) {
+  .workspace-section {
+    padding: 20px 14px 40px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .workspace-card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .workspace-card h3 {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+
+  .workspace-card > p {
+    min-height: 0;
+    font-size: 12px;
+  }
+
+  .tech-list {
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}

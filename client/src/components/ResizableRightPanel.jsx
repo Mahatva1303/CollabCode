@@ -17,6 +17,7 @@ export default function ResizableRightPanel({
   files,
   activeFile,
   applyWingsmanEdit,
+  mobilePanel,
 }) {
   const [width, setWidth] = useState(
     Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, initialWidth))
@@ -46,10 +47,12 @@ export default function ResizableRightPanel({
   };
 
   return (
-    <aside
-      className="resizable-right-panel"
-      style={{ width: `${width}px` }}
-    >
+      <aside
+        className={`resizable-right-panel ${
+          mobilePanel === 'assistant' ? 'mobile-visible' : ''
+        }`}
+        style={{ width: `${width}px` }}
+      >
       <div
         className="right-panel-resize-handle"
         role="separator"

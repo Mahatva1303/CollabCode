@@ -310,6 +310,7 @@ function App() {
   const [mobilePanel, setMobilePanel] = useState('editor');
 
   const [currentPage, setCurrentPage] = useState('home');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState(profile.displayName);
   const [editBio, setEditBio] = useState(profile.bio || '');
   const [profileMessage, setProfileMessage] = useState('');
@@ -1414,6 +1415,13 @@ async function deleteWorkspace(workspaceToDelete) {
 
   return (
     <div className="app home-shell">
+      {mobileSidebarOpen && (
+  <div
+    className="mobile-sidebar-overlay"
+    onClick={() => setMobileSidebarOpen(false)}
+    aria-hidden="true"
+  />
+)}
       <Sidebar
         profile={profile}
         currentPage={currentPage}
@@ -1423,10 +1431,21 @@ async function deleteWorkspace(workspaceToDelete) {
         openWorkspace={openWorkspace}
         setShowCreateModal={setShowCreateModal}
         renderAvatar={renderAvatar}
+        mobileSidebarOpen={mobileSidebarOpen}
+setMobileSidebarOpen={setMobileSidebarOpen}
       />
 
       <main className="home-main">
         <header className="home-topbar">
+          <button
+  type="button"
+  className="mobile-menu-button"
+  onClick={() => setMobileSidebarOpen(true)}
+  aria-label="Open navigation menu"
+  aria-expanded={mobileSidebarOpen}
+>
+  ☰
+</button>
           <div className="home-brand">
             <img src={logo} alt="CollabCode logo" />
             <strong>CollabCode</strong>
