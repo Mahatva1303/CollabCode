@@ -8,6 +8,7 @@ const connectDB = require('./config/db');
 
 const workspaceRoutes = require('./routes/workspaceRoutes');
 const codingActivityRoutes = require('./routes/codingActivityRoutes');
+const wingsmanRoutes = require('./routes/wingsmanRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +26,7 @@ app.use(express.json());
 // Workspace API routes
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/coding-activity', codingActivityRoutes);
+app.use('/api/wingsman', wingsmanRoutes);
 
 // Health check API
 app.get('/api/health', (req, res) => {

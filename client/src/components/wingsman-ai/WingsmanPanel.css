@@ -205,3 +205,251 @@
   opacity: 0.45;
   cursor: default;
 }
+
+
+
+/* Wingsman Markdown Formatting */
+
+.wingsman-markdown {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #d1d5db;
+  overflow-wrap: anywhere;
+}
+
+.wingsman-markdown p {
+  margin: 0 0 10px;
+}
+
+.wingsman-markdown h1,
+.wingsman-markdown h2,
+.wingsman-markdown h3 {
+  color: #ffffff;
+  margin: 14px 0 8px;
+  font-weight: 600;
+}
+
+.wingsman-markdown ul,
+.wingsman-markdown ol {
+  padding-left: 22px;
+  margin: 8px 0 12px;
+}
+
+.wingsman-markdown li {
+  margin-bottom: 5px;
+}
+
+.wingsman-markdown strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.wingsman-markdown code {
+  background: #252a33;
+  color: #9cdcfe;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.wingsman-markdown pre {
+  background: #151922;
+  border: 1px solid #303642;
+  padding: 12px;
+  border-radius: 7px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+.wingsman-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: #d4d4d4;
+}
+
+.wingsman-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 12px;
+  display: block;
+  overflow-x: auto;
+}
+
+.wingsman-markdown th,
+.wingsman-markdown td {
+  border: 1px solid #343b48;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.wingsman-markdown th {
+  background: #252b36;
+  color: #ffffff;
+}
+
+.wingsman-markdown tr:nth-child(even) {
+  background: #1b2029;
+}
+
+.wingsman-markdown blockquote {
+  border-left: 3px solid #388bfd;
+  padding-left: 10px;
+  margin: 10px 0;
+  color: #9ca3af;
+}
+
+
+/* Wingsman code-edit proposal */
+
+.wingsman-edit-proposal {
+  margin: 12px 0 12px 38px;
+  padding: 12px;
+  background: #171b22;
+  border: 1px solid #343b48;
+  border-radius: 9px;
+  min-width: 0;
+}
+
+.wingsman-edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.wingsman-edit-header strong {
+  color: #e6edf3;
+  font-size: 13px;
+}
+
+.wingsman-edit-header p {
+  color: #8b949e;
+  font-size: 11px;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.wingsman-edit-badge {
+  color: #d29922;
+  background: #3d2f16;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.wingsman-edit-section {
+  margin-top: 12px;
+}
+
+.wingsman-edit-section h4 {
+  color: #c9d1d9;
+  font-size: 12px;
+  margin: 0 0 6px;
+}
+
+.wingsman-edit-section pre {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 10px;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre;
+}
+
+.wingsman-edit-section code {
+  color: #c9d1d9;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.wingsman-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.wingsman-edit-actions button {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.wingsman-edit-reject {
+  color: #f0a6a6;
+  background: transparent;
+  border: 1px solid #653b3b;
+}
+
+.wingsman-edit-accept {
+  color: white;
+  background: #238636;
+  border: 1px solid #238636;
+}
+
+.wingsman-edit-accept:hover {
+  background: #2ea043;
+}
+
+.wingsman-edit-reject:hover {
+  background: #382020;
+}
+
+
+/* Wingsman code diff viewer */
+.wingsman-diff {
+  max-height: 350px;
+  overflow: auto;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+.wingsman-diff-line {
+  display: flex;
+  min-height: 22px;
+  line-height: 22px;
+  white-space: pre;
+}
+
+.wingsman-diff-symbol {
+  width: 28px;
+  flex-shrink: 0;
+  text-align: center;
+  user-select: none;
+}
+
+.wingsman-diff-line code {
+  font: inherit;
+  white-space: pre;
+}
+
+.wingsman-diff-added {
+  background: rgba(46, 160, 67, 0.18);
+  color: #7ee787;
+}
+
+.wingsman-diff-added .wingsman-diff-symbol {
+  color: #3fb950;
+}
+
+.wingsman-diff-removed {
+  background: rgba(248, 81, 73, 0.16);
+  color: #ffa198;
+}
+
+.wingsman-diff-removed .wingsman-diff-symbol {
+  color: #f85149;
+}
+
+.wingsman-diff-unchanged {
+  color: #c9d1d9;
+}

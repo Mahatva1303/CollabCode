@@ -14,6 +14,9 @@ export default function ResizableRightPanel({
   token,
   user,
   profile,
+  files,
+  activeFile,
+  applyWingsmanEdit,
 }) {
   const [width, setWidth] = useState(
     Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, initialWidth))
@@ -83,7 +86,13 @@ export default function ResizableRightPanel({
   user={user}
   profile={profile}
 />
-        <WingsmanPanel />
+        <WingsmanPanel
+  workspaceId={workspaceId}
+  token={token}
+  files={files}
+  activeFile={activeFile}
+  applyWingsmanEdit={applyWingsmanEdit}
+/>
       </div>
     </aside>
   );

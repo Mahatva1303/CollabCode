@@ -1,12 +1,12 @@
 import useCollaboration from '../collaboration/useCollaboration';
 import ConnectionStatus from './collaboration/ConnectionStatus';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import Editor from '@monaco-editor/react';
 import './WorkspaceEditor.css';
 import ResizableRightPanel from './ResizableRightPanel';
 import WingsmanToggle from './wingsman-ai/WingsmanToggle';
-import { inviteWorkspaceMemberApi } from '../api/workspaceApi';
+import { inviteWorkspaceMemberApi, updateWorkspaceMemberRoleApi, removeWorkspaceMemberApi } from '../api/workspaceApi';
 import CollaboratorCursors from './collaboration/CollaboratorCursors';
 import ActiveUsers from './collaboration/ActiveUsers';
 
@@ -67,6 +67,7 @@ function buildFileTree(files) {
 function FileTree({
   tree,
   parentPath = '',
+  canEdit,
   activeFile,
   setActiveFile,
   setMobilePanel,
@@ -119,7 +120,8 @@ function FileTree({
               </span>
 
               <span className="tree-item-name">{folderName}</span>
-
+              
+              {canEdit && (
               <span className="tree-actions">
                 <button
                   type="button"
@@ -165,12 +167,14 @@ function FileTree({
                   ×
                 </button>
               </span>
+              )}
             </div>
 
             {isExpanded && (
               <div className="tree-children">
                 <FileTree
                   tree={folderTree}
+                  canEdit={canEdit}
                   parentPath={folderPath}
                   activeFile={activeFile}
                   setActiveFile={setActiveFile}
@@ -213,6 +217,7 @@ function FileTree({
             <span className="tree-item-name">{name}</span>
           </button>
 
+          {canEdit && (
           <span className="tree-actions">
             <button
               type="button"
@@ -230,6 +235,7 @@ function FileTree({
               ×
             </button>
           </span>
+          )}
         </div>
       ))}
     </>
@@ -259,12 +265,19 @@ export default function WorkspaceEditor({
   getFileIcon,
   outputMessage,
   updateFile,
+  applyWingsmanEdit,
   showPreview,
   setShowPreview,
   previewCode,
 }) {
   const [wingsmanEnabled, setWingsmanEnabled] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+const [inviteEmail, setInviteEmail] = useState('');
+const [inviteRole, setInviteRole] = useState('Editor');
   const [monacoEditor, setMonacoEditor] = useState(null);
+  const [monacoInstance, setMonacoInstance] = useState(null);
+const inlineProviderRef = useRef(null);
 
 const updateFileRef = useRef(updateFile);
 
@@ -278,12 +291,156 @@ useEffect(() => {
   onLocalCodeEditRef.current = onLocalCodeEdit;
 }, [onLocalCodeEdit]);
 
+ 
   const [firebaseToken, setFirebaseToken] = useState(null);
-  const workspaceId = activeWorkspace?._id || activeWorkspace?.id;
+  const completionRequestRef = useRef(null);
+  const requestGhostCompletionRef = useRef(null);
 
-const isValidWorkspaceId = /^[a-f\d]{24}$/i.test(
-  String(workspaceId || '')
+  const workspaceId = activeWorkspace?._id || activeWorkspace?.id;
+  const currentMember = activeWorkspace?.members?.find(
+  (member) => member.userId === user?.uid
 );
+
+const userRole =
+  currentMember?.role ||
+  (activeWorkspace?.ownerId === user?.uid ? 'Admin' : null);
+  const canEdit = userRole === 'Admin' || userRole === 'Editor';
+
+console.log('Current workspace role:', userRole);
+
+  const isValidWorkspaceId = /^[a-f\d]{24}$/i.test(
+    String(workspaceId || '')
+  );
+
+  async function requestGhostCompletion(cursorContext) {
+    if (!firebaseToken || !isValidWorkspaceId || !activeFile) {
+      return '';
+    }
+
+    if (completionRequestRef.current) {
+      completionRequestRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    completionRequestRef.current = controller;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/wingsman/complete`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          body: JSON.stringify({
+            workspaceId,
+            filePath: activeFile,
+            cursorContext,
+            workspaceContext: Object.keys(files)
+              .filter((path) => !isFolderMarker(path))
+              .map((path) => `File: ${path}`)
+              .join('\n')
+              .slice(0, 20000),
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Ghost Writing request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      return data.success && typeof data.suggestion === 'string'
+        ? data.suggestion
+        : '';
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Ghost Writing error:', error);
+      }
+
+      return '';
+    } finally {
+      if (completionRequestRef.current === controller) {
+        completionRequestRef.current = null;
+      }
+    }
+  }
+
+  requestGhostCompletionRef.current = requestGhostCompletion;
+
+  // Register Monaco's Ghost Writing provider.
+  useEffect(() => {
+    if (!monacoInstance || !wingsmanEnabled) return;
+
+    console.log('Wingsman inline provider is registering');
+
+    const inlineProvider =
+      monacoInstance.languages.registerInlineCompletionsProvider('*', {
+        async provideInlineCompletions(model, position, context, token) {
+          console.log('Wingsman inline provider was triggered');
+
+          await new Promise((resolve) => setTimeout(resolve, 700));
+
+          if (token.isCancellationRequested) {
+            return { items: [] };
+          }
+
+          const fullCode = model.getValue();
+          const cursorOffset = model.getOffsetAt(position);
+
+          const prefix = fullCode.slice(
+            Math.max(0, cursorOffset - 6000),
+            cursorOffset
+          );
+
+          const suffix = fullCode.slice(
+            cursorOffset,
+            cursorOffset + 1500
+          );
+
+          const cursorContext = `${prefix}\n/* CURSOR */\n${suffix}`;
+
+          const suggestion =
+            await requestGhostCompletionRef.current?.(cursorContext);
+
+          if (token.isCancellationRequested || !suggestion?.trim()) {
+            return { items: [] };
+          }
+
+          return {
+            items: [
+              {
+                insertText: suggestion,
+                range: {
+                  startLineNumber: position.lineNumber,
+                  startColumn: position.column,
+                  endLineNumber: position.lineNumber,
+                  endColumn: position.column,
+                },
+              },
+            ],
+          };
+        },
+
+        freeInlineCompletions() {},
+      });
+
+    inlineProviderRef.current = inlineProvider;
+
+    return () => {
+      inlineProvider.dispose();
+      inlineProviderRef.current = null;
+
+      if (completionRequestRef.current) {
+        completionRequestRef.current.abort();
+        completionRequestRef.current = null;
+      }
+    };
+  }, [monacoInstance, wingsmanEnabled]);
+
 
 const {
   document,
@@ -371,11 +528,18 @@ useEffect(() => {
         return;
     }
 
-    const model = monacoEditor.getModel();
+        const model = monacoEditor.getModel();
 
-    if (!model) return;
+        if (!model) return;
 
-    const sharedText = document.getText('monaco');
+        // Ensure Monaco is displaying the currently selected file.
+        const expectedPath = `${activeWorkspace.name}/${activeFile}`;
+
+        if (model.uri.path.replace(/^\/+/, '') !== expectedPath) {
+            return;
+        }
+
+        const sharedText = document.getText('monaco');
 
     // Initialize shared content for the first collaborator
     if (sharedText.length === 0 && model.getValue()) {
@@ -489,6 +653,96 @@ function closeTab(path) {
   }
 }
 
+async function sendInvitation() {
+  if (!inviteEmail.trim()) {
+    window.alert('Please enter an email address.');
+    return;
+  }
+
+  try {
+    await inviteWorkspaceMemberApi(workspaceId, {
+      email: inviteEmail.trim(),
+      role: inviteRole,
+    });
+
+    window.alert(
+      `${inviteRole} invited successfully!`
+    );
+
+    setShowInviteModal(false);
+    setInviteEmail('');
+    setInviteRole('Editor');
+  } catch (error) {
+    console.error('Member invitation failed:', error);
+    window.alert(error.message || 'Could not invite member.');
+  }
+}
+
+
+async function handleMemberRoleChange(memberId, newRole) {
+  if (userRole !== 'Admin') return;
+
+  try {
+    await updateWorkspaceMemberRoleApi(
+      workspaceId,
+      memberId,
+      newRole
+    );
+
+    setActiveWorkspace((current) => {
+      if (!current || (current._id || current.id) !== workspaceId) {
+        return current;
+      }
+
+      return {
+        ...current,
+        members: current.members.map((member) =>
+          member.userId === memberId
+            ? { ...member, role: newRole }
+            : member
+        ),
+      };
+    });
+
+    window.alert('Member role updated successfully.');
+  } catch (error) {
+    console.error('Member role update failed:', error);
+    window.alert(error.message || 'Could not update member role.');
+  }
+}
+
+async function handleRemoveMember(memberId, memberEmail) {
+  if (userRole !== 'Admin') return;
+
+  const confirmed = window.confirm(
+    `Are you sure you want to remove ${memberEmail} from this workspace?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await removeWorkspaceMemberApi(workspaceId, memberId);
+
+    setActiveWorkspace((current) => {
+      if (!current || (current._id || current.id) !== workspaceId) {
+        return current;
+      }
+
+      return {
+        ...current,
+        members: current.members.filter(
+          (member) => member.userId !== memberId
+        ),
+      };
+    });
+
+    window.alert('Member removed successfully.');
+  } catch (error) {
+    console.error('Member removal failed:', error);
+    window.alert(error.message || 'Could not remove member.');
+  }
+}
+
   return (
     <div className="editor-app">
       <header className="editor-topbar">
@@ -502,12 +756,25 @@ function closeTab(path) {
         <div className="editor-top-actions">
           <span className="editor-status-dot" />
           <span className="editor-status-text">Auto Save</span>
-          <button
+
+          {userRole === 'Admin' && (
+                    <button
+            className="editor-back-btn"
+            onClick={() => setShowInviteModal(true)}
+          >
+            + Invite
+          </button>
+          )}
+
+
+          {userRole === 'Admin' && (
+            <button
               className="editor-back-btn"
-              onClick={inviteMember}
+              onClick={() => setShowMembersModal(true)}
             >
-              + Invite
+              👥 Members
             </button>
+          )}
 
           <button className="editor-run-btn" onClick={runPreview}>
             ▶ Run
@@ -522,7 +789,142 @@ function closeTab(path) {
         </div>
       </header>
 
+      {showInviteModal && (
+  <div
+    className="invite-modal-overlay"
+    onClick={() => setShowInviteModal(false)}
+  >
+    <div
+      className="invite-modal"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="invite-modal-header">
+        <h2>Invite Member</h2>
+        <button
+          type="button"
+          onClick={() => setShowInviteModal(false)}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="invite-modal-body">
+        <label>Email Address</label>
+        <input
+          type="email"
+          placeholder="Enter member's email"
+          value={inviteEmail}
+          onChange={(event) => setInviteEmail(event.target.value)}
+        />
+
+        <label>Select Role</label>
+        <select
+          value={inviteRole}
+          onChange={(event) => setInviteRole(event.target.value)}
+        >
+          <option value="Editor">Editor — Can edit code</option>
+          <option value="Viewer">Viewer — View code only</option>
+        </select>
+      </div>
+
+      <div className="invite-modal-actions">
+        <button
+          type="button"
+          onClick={() => setShowInviteModal(false)}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={sendInvitation}
+        >
+          Send Invitation
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+      {showMembersModal && (
+  <div
+    className="invite-modal-overlay"
+    onClick={() => setShowMembersModal(false)}
+  >
+    <div
+      className="invite-modal"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="invite-modal-header">
+        <h2>Workspace Members</h2>
+        <button
+          type="button"
+          onClick={() => setShowMembersModal(false)}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="invite-modal-body">
+        {(activeWorkspace?.members || []).map((member) => (
+          <div
+            key={member.userId}
+            className="member-list-item"
+          >
+            <div className="member-details">
+              <strong>{member.email || 'Unknown member'}</strong>
+
+              {member.role === 'Admin' ? (
+                <span>Admin (Owner)</span>
+              ) : (
+                <select
+                  className="member-role-select"
+                  value={member.role}
+                  onChange={(event) =>
+                    handleMemberRoleChange(member.userId, event.target.value)
+                  }
+                >
+                  <option value="Editor">Editor</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+              )}
+            </div>
+
+            {member.role !== 'Admin' && (
+  <button
+    type="button"
+    className="member-remove-btn"
+    onClick={() =>
+      handleRemoveMember(member.userId, member.email)
+    }
+  >
+    Remove
+  </button>
+)}
+          </div>
+        ))}
+
+        {(!activeWorkspace?.members ||
+          activeWorkspace.members.length === 0) && (
+          <p>No members found.</p>
+        )}
+      </div>
+
+      <div className="invite-modal-actions">
+        <button
+          type="button"
+          onClick={() => setShowMembersModal(false)}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       <div className="editor-tabs-mobile">
+
+        
         <button
           className={mobilePanel === 'files' ? 'selected' : ''}
           onClick={() => setMobilePanel('files')}
@@ -565,7 +967,8 @@ function closeTab(path) {
             <span>📂</span>
             <strong>{activeWorkspace.name}</strong>
           </div>
-
+         
+         {canEdit && (
           <div className="file-actions">
             <button onClick={() => createFile()} title="New file">
               + File
@@ -575,11 +978,13 @@ function closeTab(path) {
               + Folder
             </button>
           </div>
+          )}
 
           <div className="file-list">
             <FileTree
               tree={fileTree}
               activeFile={activeFile}
+              canEdit={canEdit}
               setActiveFile={setActiveFile}
               setMobilePanel={setMobilePanel}
               getLanguage={getLanguage}
@@ -690,14 +1095,19 @@ function closeTab(path) {
               <Editor
                 height="100%"
                 path={`${activeWorkspace.name}/${activeFile}`}
-                onMount={(editor) => {
-                    setMonacoEditor(editor);
-                  }}
+                onMount={(editor, monaco) => {
+  setMonacoEditor(editor);
+  setMonacoInstance(monaco);
+}}
                 language={getLanguage(activeFile)}
                 theme="vs-dark"
                 value={files[activeFile] ?? ''}
-                onChange={updateFile}
+                onChange={(value) => {
+  console.log('Monaco edited file:', activeFile);
+  updateFile(value);
+}}
                 options={{
+                  readOnly: userRole === 'Viewer',
                   minimap: { enabled: true },
                   fontSize: 14,
                   fontFamily: "'Cascadia Code', Consolas, monospace",
@@ -709,6 +1119,9 @@ function closeTab(path) {
                   wordWrap: 'on',
                   suggestOnTriggerCharacters: true,
                   quickSuggestions: true,
+                  inlineSuggest: {
+                      enabled: true,
+                    },
                   folding: true,
                   lineNumbers: 'on',
                   renderLineHighlight: 'all',
@@ -806,6 +1219,9 @@ function closeTab(path) {
   token={firebaseToken}
   user={user}
   profile={profile}
+  files={files}
+  activeFile={activeFile}
+  applyWingsmanEdit={applyWingsmanEdit}
 />
       </div>
 

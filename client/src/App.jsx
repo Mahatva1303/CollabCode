@@ -676,14 +676,38 @@ function saveProfile(event) {
   function updateFile(value) {
     if (!activeFile || isFolderMarker(activeFile)) return;
 
+
+    console.log('Saving file:', activeFile);
+console.log('Previous file contents:', files);
+
     const updatedFiles = {
       ...files,
       [activeFile]: value ?? '',
     };
 
+
     persistProjectFiles(updatedFiles);
     setOutputMessage('Changes saved locally');
   }
+
+
+  function applyWingsmanEdit(filePath, newContent) {
+    if (!filePath || isFolderMarker(filePath)) return;
+
+    if (!Object.prototype.hasOwnProperty.call(files, filePath)) {
+        console.error('Wingsman edit rejected: file not found.');
+        return;
+    }
+
+    const updatedFiles = {
+        ...files,
+        [filePath]: newContent ?? '',
+    };
+
+    persistProjectFiles(updatedFiles);
+    setActiveFile(filePath);
+    setOutputMessage(`Wingsman updated ${filePath}`);
+}
 
   function editWorkspace(workspace) {
     setEditingWorkspace(workspace);
@@ -821,6 +845,17 @@ async function createWorkspace(event) {
   }
 
   function createFile(folderPath = '') {
+
+    if (
+    !activeWorkspace?.members?.some(
+        (member) =>
+            member.userId === user?.uid &&
+            ['Admin', 'Editor'].includes(member.role)
+    )
+) {
+    alert('You do not have permission to create files.');
+    return;
+}
     const input = prompt(
       'Enter a file name or relative path (e.g. App.jsx or components/Header.jsx):',
       folderPath ? `${folderPath}/` : ''
@@ -875,6 +910,18 @@ async function createWorkspace(event) {
   }
 
   function createFolder(parentPath = '') {
+
+    if (
+    !activeWorkspace?.members?.some(
+        (member) =>
+            member.userId === user?.uid &&
+            ['Admin', 'Editor'].includes(member.role)
+    )
+) {
+    alert('You do not have permission to create folders.');
+    return;
+}
+
     const input = prompt(
       parentPath
         ? `Enter a folder name or relative path inside "${parentPath}":`
@@ -923,6 +970,19 @@ async function createWorkspace(event) {
   }
 
   function renameFile(oldPath) {
+   
+    if (
+    !activeWorkspace?.members?.some(
+        (member) =>
+            member.userId === user?.uid &&
+            ['Admin', 'Editor'].includes(member.role)
+    )
+) {
+    alert('You do not have permission to rename files.');
+    return;
+}
+
+
     const oldName = oldPath.split('/').pop();
     const input = prompt(`Rename "${oldPath}" to:`, oldName);
 
@@ -973,6 +1033,18 @@ async function createWorkspace(event) {
   }
 
   function renameFolder(folderPath) {
+
+    if (
+    !activeWorkspace?.members?.some(
+        (member) =>
+            member.userId === user?.uid &&
+            ['Admin', 'Editor'].includes(member.role)
+    )
+) {
+    alert('You do not have permission to rename folders.');
+    return;
+}
+
     const oldName = folderPath.split('/').pop();
     const input = prompt(`Rename folder "${folderPath}" to:`, oldName);
 
@@ -1034,6 +1106,19 @@ async function createWorkspace(event) {
   }
 
   function deleteFile(filePath) {
+  
+    if (
+    !activeWorkspace?.members?.some(
+        (member) =>
+            member.userId === user?.uid &&
+            ['Admin', 'Editor'].includes(member.role)
+    )
+) {
+    alert('You do not have permission to delete files.');
+    return;
+}
+
+
     const editablePaths = Object.keys(files).filter(
       (path) => !isFolderMarker(path)
     );
@@ -1077,6 +1162,18 @@ async function createWorkspace(event) {
   }
 
   function deleteFolder(folderPath) {
+
+  if (
+    !activeWorkspace?.members?.some(
+        (member) =>
+            member.userId === user?.uid &&
+            ['Admin', 'Editor'].includes(member.role)
+    )
+) {
+    alert('You do not have permission to delete folders.');
+    return;
+}
+
     const containedPaths = Object.keys(files).filter(
       (path) => path === folderPath || path.startsWith(`${folderPath}/`)
     );
@@ -1306,6 +1403,7 @@ async function deleteWorkspace(workspaceToDelete) {
         getFileIcon={getFileIcon}
         outputMessage={outputMessage}
         updateFile={updateFile}
+        applyWingsmanEdit={applyWingsmanEdit}
         showPreview={showPreview}
         setShowPreview={setShowPreview}
         previewCode={previewCode}

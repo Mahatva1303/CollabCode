@@ -128,7 +128,8 @@ router.post('/:workspaceId/members', authenticateUser, async (req, res) => {
         // Find workspace and verify ownership
         const workspace = await Workspace.findOne({
             _id: req.params.workspaceId,
-            ownerId: req.user.uid,
+            'members.userId': req.user.uid,
+            'members.role': 'Admin',
         });
 
         if (!workspace) {
@@ -258,5 +259,133 @@ router.delete('/:workspaceId', authenticateUser, async (req, res) => {
     }
 });
 
+
+
+// Change a workspace member's role (Admin only)
+router.patch('/:workspaceId/members/:memberId/role', authenticateUser, async (req, res) => {
+    try {
+        const { role } = req.body;
+
+        if (!['Editor', 'Viewer'].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Role must be Editor or Viewer.',
+            });
+        }
+
+        const workspace = await Workspace.findOne({
+            _id: req.params.workspaceId,
+            members: {
+                $elemMatch: {
+                    userId: req.user.uid,
+                    role: 'Admin',
+                },
+            },
+        });
+
+        if (!workspace) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only workspace Admins can change roles.',
+            });
+        }
+
+        const member = workspace.members.find(
+            (item) => item.userId === req.params.memberId
+        );
+
+        if (!member) {
+            return res.status(404).json({
+                success: false,
+                message: 'Workspace member not found.',
+            });
+        }
+
+        if (member.role === 'Admin' || member.userId === workspace.ownerId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Cannot change the workspace Admin role.',
+            });
+        }
+
+        member.role = role;
+        await workspace.save();
+
+        return res.json({
+            success: true,
+            message: 'Member role updated successfully.',
+            member: {
+                userId: member.userId,
+                email: member.email,
+                role: member.role,
+            },
+        });
+    } catch (error) {
+        console.error('Update member role error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Could not update member role.',
+        });
+    }
+});
+
+// Remove a workspace member (Admin only)
+router.delete('/:workspaceId/members/:memberId', authenticateUser, async (req, res) => {
+    try {
+        const workspace = await Workspace.findOne({
+            _id: req.params.workspaceId,
+            members: {
+                $elemMatch: {
+                    userId: req.user.uid,
+                    role: 'Admin',
+                },
+            },
+        });
+
+        if (!workspace) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only workspace Admins can remove members.',
+            });
+        }
+
+        const member = workspace.members.find(
+            (item) => item.userId === req.params.memberId
+        );
+
+        if (!member) {
+            return res.status(404).json({
+                success: false,
+                message: 'Workspace member not found.',
+            });
+        }
+
+        // Protect the workspace owner and Admin members
+        if (member.role === 'Admin' || member.userId === workspace.ownerId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Cannot remove a workspace Admin.',
+            });
+        }
+
+        workspace.members = workspace.members.filter(
+            (item) => item.userId !== req.params.memberId
+        );
+
+        await workspace.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Workspace member removed successfully.',
+        });
+    } catch (error) {
+        console.error('Remove member error:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Could not remove workspace member.',
+        });
+    }
+});
 
 module.exports = router;

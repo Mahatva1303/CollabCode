@@ -15,6 +15,7 @@ export default function useCollaboration({
     const [provider, setProvider] = useState(null);
     const [status, setStatus] = useState('disconnected');
     const [isSynced, setIsSynced] = useState(false);
+    const [connectedDocumentName, setConnectedDocumentName] = useState(null);
 
     const documentName =
         workspaceId && filePath
@@ -32,6 +33,8 @@ export default function useCollaboration({
 
         const ydoc = new Y.Doc();
 
+        setIsSynced(false);
+        setConnectedDocumentName(documentName);
         setDocument(ydoc);
         setStatus('connecting');
 
@@ -63,10 +66,12 @@ export default function useCollaboration({
         };
     }, [documentName, enabled, token]);
 
-    return {
-        document,
-        provider,
-        status,
-        isSynced,
-    };
+   const isCurrentDocument = connectedDocumentName === documentName;
+
+        return {
+            document: isCurrentDocument ? document : null,
+            provider: isCurrentDocument ? provider : null,
+            status: isCurrentDocument ? status : 'connecting',
+            isSynced: isCurrentDocument && isSynced,
+        };
 }

@@ -8,7 +8,7 @@ const collaborationServer = new Server({
     port: process.env.PORT || 1234,
 
     // Verify Firebase identity and workspace membership
-    async onAuthenticate({ token, documentName }) {
+    async onAuthenticate({ token, documentName, connectionConfig }) {
         // Verify Firebase token
         const decodedToken = await verifyFirebaseToken(token);
 
@@ -38,6 +38,14 @@ const collaborationServer = new Server({
             item => item.userId === decodedToken.uid
         );
 
+        // Viewers can access the workspace but cannot edit shared code
+            if (
+                member.role === 'Viewer' &&
+                !documentName.endsWith('file-__team-chat__')
+            ) {
+                connectionConfig.readOnly = true;
+            }
+
         console.log(
             `Authenticated ${decodedToken.email} as ${member.role}`
         );
@@ -51,6 +59,37 @@ const collaborationServer = new Server({
             },
         };
     },
+
+    // Recheck membership and roles during an active session
+async beforeHandleMessage({ context, documentName }) {
+    const user = context?.user;
+
+    if (!user?.uid) {
+        throw new Error('Authentication required.');
+    }
+
+    const workspace = await Workspace.findById(user.workspaceId);
+
+    if (!workspace) {
+        throw new Error('Workspace no longer exists.');
+    }
+
+    const member = workspace.members.find(
+        (item) => item.userId === user.uid
+    );
+
+    if (!member) {
+        throw new Error(
+            'Your access to this workspace has been revoked.'
+        );
+    }
+
+    if (member.role !== user.role) {
+        throw new Error(
+            'Your workspace role has changed. Please reconnect.'
+        );
+    }
+},
 
     async onConnect({ documentName }) {
         console.log(`User connected to workspace: ${documentName}`);

@@ -861,3 +861,172 @@
 .monaco-editor .yRemoteSelection {
   background-color: rgba(56, 139, 253, 0.25) !important;
 }
+
+
+/* Invite Member Modal */
+.invite-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.invite-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #1e1e1e;
+  border: 1px solid #3c3c3c;
+  border-radius: 12px;
+  color: #cccccc;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.invite-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.invite-modal-header h2 {
+  font-size: 18px;
+  margin: 0;
+  color: #ffffff;
+}
+
+.invite-modal-header button {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.invite-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+.invite-modal-body label {
+  font-size: 13px;
+  color: #cccccc;
+  margin-top: 5px;
+}
+
+.invite-modal-body input,
+.invite-modal-body select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  background: #252526;
+  border: 1px solid #454545;
+  border-radius: 6px;
+  color: #ffffff;
+  outline: none;
+  font-size: 14px;
+}
+
+.invite-modal-body input:focus,
+.invite-modal-body select:focus {
+  border-color: #007fd4;
+}
+
+.invite-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+
+.invite-modal-actions button {
+  padding: 9px 15px;
+  border-radius: 6px;
+  border: 1px solid #454545;
+  background: #333333;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.invite-modal-actions button:last-child {
+  background: #0078d4;
+  border-color: #0078d4;
+}
+
+.invite-modal-actions button:hover {
+  filter: brightness(1.15);
+}
+
+
+/* Workspace Members */
+
+.member-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #252526;
+  border: 1px solid #353535;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.member-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.member-details strong {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e5e7eb;
+  overflow-wrap: anywhere;
+}
+
+.member-details span {
+  font-size: 12px;
+  color: #8b949e;
+}
+
+.member-role-select {
+  width: fit-content;
+  min-width: 100px;
+  padding: 6px 10px;
+  background: #1e1e1e;
+  color: #e5e7eb;
+  border: 1px solid #454545;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.member-role-select:focus {
+  outline: none;
+  border-color: #0078d4;
+}
+
+.member-remove-btn {
+  padding: 7px 12px;
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #7f3030;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.member-remove-btn:hover {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: #f87171;
+}

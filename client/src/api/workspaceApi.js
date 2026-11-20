@@ -65,3 +65,33 @@ export async function deleteWorkspaceApi(workspaceId) {
 
     return data;
 }
+
+
+// Update a workspace member's role (Admin only)
+export async function updateWorkspaceMemberRoleApi(
+    workspaceId,
+    memberId,
+    role
+) {
+    return await request(
+        `/api/workspaces/${workspaceId}/members/${memberId}/role`,
+        {
+            method: 'PATCH',
+            body: JSON.stringify({ role }),
+        }
+    );
+}
+
+
+// Remove a workspace member (Admin only)
+export async function removeWorkspaceMemberApi(
+    workspaceId,
+    memberId
+) {
+    return await request(
+        `/api/workspaces/${workspaceId}/members/${memberId}`,
+        {
+            method: 'DELETE',
+        }
+    );
+}
